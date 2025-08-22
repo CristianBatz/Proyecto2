@@ -1,8 +1,10 @@
 class CodigoDuplicadoError(Exception):
     pass
 
+
 class RegistroNoExisteError(Exception):
     pass
+
 
 class Productos:
     def __init__(self, id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
@@ -34,10 +36,12 @@ class Productos:
     def __str__(self):
         return f"[{self.id_producto}] {self.nombre} | Cat: {self.id_categoria} | Precio: Q{self.precio:.2f} | Stock: {self.stock}"
 
+
 class Categorias:
     def __init__(self, id_categoria, nombre):
         self.id_categoria = id_categoria
         self.nombre = nombre
+
 
 class Clientes:
     def __init__(self, nit, nombre, telefono, direccion, correo):
@@ -47,6 +51,7 @@ class Clientes:
         self.direccion = direccion
         self.correo = correo
 
+
 class Empleados:
     def __init__(self, id_empleado, nombre, telefono, direccion, correo):
         self.id_empleado = id_empleado
@@ -54,6 +59,7 @@ class Empleados:
         self.telefono = telefono
         self.direccion = direccion
         self.correo = correo
+
 
 class Proveedores:
     def __init__(self, id_proveedor, nombre, empresa, nit, telefono, direccion, correo):
@@ -65,6 +71,7 @@ class Proveedores:
         self.direccion = direccion
         self.correo = correo
 
+
 class Ventas:
     def __init__(self, id_venta, fecha, id_cliente, id_empleado):
         self.id_venta = id_venta
@@ -75,8 +82,9 @@ class Ventas:
         self.total = 0
 
     def agregar_detalle(self, detalle):
-            self.detalles.append(detalle)
-            self.total += detalle.subtotal
+        self.detalles.append(detalle)
+        self.total += detalle.subtotal
+
 
 class DetallesVentas:
     def __init__(self, id_detalle, id_venta, id_producto, cantidad, precio, subtotal):
@@ -86,6 +94,7 @@ class DetallesVentas:
         self.cantidad = cantidad
         self.precio = precio
         self.subtotal = subtotal
+
 
 class Compras:
     def __init__(self, id_compra, fecha, id_proveedor, id_empleado):
@@ -100,6 +109,7 @@ class Compras:
         self.detalles.append(detalle)
         self.total += detalle.subtotal
 
+
 class DetallesCompras:
     def __init__(self, id_detalle, id_compra, id_producto, cantidad, precio_compra, subtotal):
         self.id_detalle = id_detalle
@@ -109,12 +119,69 @@ class DetallesCompras:
         self.precio_compra = precio_compra
         self.subtotal = subtotal
 
+
 class ManipulacionInventario:
-    pass
+    def __init__(self):
+        self.productos = {}
+
+    def agregar_producto(self, producto):
+        if producto.id_producto in self.productos:
+            raise CodigoDuplicadoError("El ID del producto ya existe.")
+        self.productos[producto.id_producto] = producto
+
+    def eliminar_producto(self, id_producto):
+        if id_producto not in self.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        del self.productos[id_producto]
+
+    def actualizar_producto(self, id_producto, nuevo_precio=None, nuevo_stock=None):
+        if id_producto not in self.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        producto = self.productos[id_producto]
+        if nuevo_precio is not None:
+            producto.actualizar_precio(nuevo_precio)
+        if nuevo_stock is not None:
+            producto.actualizar_stock(nuevo_stock)
+
+    def obtener_lista(self):
+        return list(self.productos.values())
 
 class Buscar:
-    pass
+    def buscar_valor(self, lista, criterio, valor):
+        resultados = []
+        valor = valor.lower()
+        for item in lista:
+            if criterio == "id_producto" and item.id_producto.lower() == valor:
+                resultados.append(item)
+            elif criterio == "nombre" and valor in item.nombre.lower():
+                resultados.append(item)
+            elif criterio == "categoria" and valor in item.id_categoria.lower():
+                resultados.append(item)
+        return resultados
+
 
 class Ordenamiento:
-    pass
+    def quick_sort(self, lista, clave):
+        if len(lista) <= 1:
+            return lista
+        pivote = lista[0]
 
+        if clave == "id_producto":
+            menores = [x for x in lista[1:] if x.id_producto < pivote.id_producto]
+            iguales = [x for x in lista[1:] if x.id_producto == pivote.id_producto]
+            mayores = [x for x in lista[1:] if x.id_producto > pivote.id_producto]
+
+        elif clave == "nombre":
+            menores = [x for x in lista[1:] if x.nombre < pivote.nombre]
+            iguales = [x for x in lista[1:] if x.nombre == pivote.nombre]
+            mayores = [x for x in lista[1:] if x.nombre > pivote.nombre]
+
+        elif clave == "precio":
+            menores = [x for x in lista[1:] if x.precio < pivote.precio]
+            iguales = [x for x in lista[1:] if x.precio == pivote.precio]
+            mayores = [x for x in lista[1:] if x.precio > pivote.precio]
+
+        else:
+            raise ValueError("Criterio inválido.")
+
+        return self.quick_sort(menores, clave) + [pivote] + iguales + self.quick_sort(mayores, clave)
