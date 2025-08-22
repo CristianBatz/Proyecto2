@@ -85,6 +85,70 @@ class Ventas:
         self.detalles.append(detalle)
         self.total += detalle.subtotal
 
+class ManipulacionInventario:
+    def __init__(self):
+        self.productos = {}
+
+    def agregar_producto(self, producto):
+        if producto.id_producto in self.productos:
+            raise CodigoDuplicadoError("El ID del producto ya existe.")
+        self.productos[producto.id_producto] = producto
+
+    def eliminar_producto(self, id_producto):
+        if id_producto not in self.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        del self.productos[id_producto]
+
+    def actualizar_producto(self, id_producto, nuevo_precio=None, nuevo_stock=None):
+        if id_producto not in self.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        producto = self.productos[id_producto]
+        if nuevo_precio is not None:
+            producto.actualizar_precio(nuevo_precio)
+        if nuevo_stock is not None:
+            producto.actualizar_stock(nuevo_stock)
+
+    def obtener_lista(self):
+        return list(self.productos.values())
+
+class ManipulacionVentas:
+    def __init__(self, inventario: ManipulacionInventario):
+        self.inventario = inventario
+        self.historial = []
+
+    def vender(self, codigo: str, cantidad: int):
+        if codigo not in self.inventario.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        producto = self.inventario.productos[codigo]
+        if cantidad <= 0:
+            raise ValueError("La cantidad debe ser mayor a 0.")
+        if producto.stock < cantidad:
+            raise ValueError(f"Stock insuficiente. Disponible: {producto.stock}")
+
+        producto.stock -= cantidad
+        total = cantidad * producto.precio
+        self.historial.append((producto.id_producto, producto.nombre, cantidad, total))
+        print(f"Venta registrada correctamente. Total: Q{total:.2f}")
+
+    def mostrar_historial(self):
+        if not self.historial:
+            print("No hay ventas registradas.")
+            return
+
+        print("\nHISTORIAL DE VENTAS:")
+        total_general = 0
+        for codigo, nombre, cantidad, total in self.historial:
+            print(f"[{codigo}] {nombre} - {cantidad} unidades - Total: Q{total:.2f}")
+            total_general += total
+        print(f"\n Total acumulado de ventas: Q{total_general:.2f}")
+
+    def filtrar_por_codigo(self, codigo: str):
+        ventas_filtradas = [v for v in self.historial if v[0] == codigo]
+        if not ventas_filtradas:
+            print("No hay ventas para ese producto.")
+            return
+        for _, nombre, cantidad, total in ventas_filtradas:
+            print(f"{nombre} - {cantidad} unidades - Q{total:.2f}")
 
 class DetallesVentas:
     def __init__(self, id_detalle, id_venta, id_producto, cantidad, precio, subtotal):
@@ -118,33 +182,6 @@ class DetallesCompras:
         self.cantidad = cantidad
         self.precio_compra = precio_compra
         self.subtotal = subtotal
-
-
-class ManipulacionInventario:
-    def __init__(self):
-        self.productos = {}
-
-    def agregar_producto(self, producto):
-        if producto.id_producto in self.productos:
-            raise CodigoDuplicadoError("El ID del producto ya existe.")
-        self.productos[producto.id_producto] = producto
-
-    def eliminar_producto(self, id_producto):
-        if id_producto not in self.productos:
-            raise RegistroNoExisteError("No se encontró el producto.")
-        del self.productos[id_producto]
-
-    def actualizar_producto(self, id_producto, nuevo_precio=None, nuevo_stock=None):
-        if id_producto not in self.productos:
-            raise RegistroNoExisteError("No se encontró el producto.")
-        producto = self.productos[id_producto]
-        if nuevo_precio is not None:
-            producto.actualizar_precio(nuevo_precio)
-        if nuevo_stock is not None:
-            producto.actualizar_stock(nuevo_stock)
-
-    def obtener_lista(self):
-        return list(self.productos.values())
 
 class Buscar:
     def buscar_valor(self, lista, criterio, valor):
