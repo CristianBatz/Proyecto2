@@ -11,7 +11,7 @@ class Categorias:
         self.nombre = nombre
 
 class ManipulacionCategorias:
-    def __init__(self, categorias):
+    def __init__(self):
         self.categoria = {}
 
     def agregar_categoria(self):
@@ -86,6 +86,16 @@ class Proveedores:
 class ManipulacionProveedores:
     def __init__(self):
         self.proveedores: {}
+
+    def agregar_proveedores(self):
+        id_proveedor = int(input("Ingrese el id del proveedor: "))
+        nombre = input("Ingrese el nombre del proveedor: ")
+        telefono = input("Ingrese el telefono del proveedor: ")
+        direccion = input("Ingrese el direccion del proveedor: ")
+        correo = input("Ingrese el correo del proveedor: ")
+        empresa = input("Ingrese el nombre de la empresa del proveedor: ")
+        nit = input("Ingrese el nit del proveedor: ")
+        self.proveedores[id_proveedor] = Proveedores(id_proveedor, nombre, telefono, direccion, correo,empresa,nit)
 
 class Ventas:
     def __init__(self, id_venta, fecha, id_cliente, id_empleado):
