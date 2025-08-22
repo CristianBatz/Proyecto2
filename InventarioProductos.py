@@ -5,6 +5,21 @@ class CodigoDuplicadoError(Exception):
 class RegistroNoExisteError(Exception):
     pass
 
+class Categorias:
+    def __init__(self, id_categoria, nombre):
+        self.id_categoria = id_categoria
+        self.nombre = nombre
+
+class ManipulacionCategorias:
+    def __init__(self, categorias):
+        self.categoria = {}
+
+    def agregar_categoria(self):
+        idc= int(input("Ingrese el id del categoria: "))
+        nombre =input("Ingrese el nombre del categoria: ")
+        self.categoria[idc] = Categorias(idc,nombre)
+        print("Categorias agregada exitosamente")
+
 
 class Productos:
     def __init__(self, id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
@@ -36,13 +51,6 @@ class Productos:
     def __str__(self):
         return f"[{self.id_producto}] {self.nombre} | Cat: {self.id_categoria} | Precio: Q{self.precio:.2f} | Stock: {self.stock}"
 
-
-class Categorias:
-    def __init__(self, id_categoria, nombre):
-        self.id_categoria = id_categoria
-        self.nombre = nombre
-
-
 class Clientes:
     def __init__(self, nit, nombre, telefono, direccion, correo):
         self.nit = nit
@@ -60,6 +68,10 @@ class Empleados:
         self.direccion = direccion
         self.correo = correo
 
+class ManipulacionEmpleados:
+    def __init__(self):
+        self.empleado = {}
+
 
 class Proveedores:
     def __init__(self, id_proveedor, nombre, empresa, nit, telefono, direccion, correo):
@@ -71,6 +83,9 @@ class Proveedores:
         self.direccion = direccion
         self.correo = correo
 
+class ManipulacionProveedores:
+    def __init__(self):
+        self.proveedores: {}
 
 class Ventas:
     def __init__(self, id_venta, fecha, id_cliente, id_empleado):
@@ -92,7 +107,17 @@ class ManipulacionInventario:
     def agregar_producto(self, producto):
         if producto.id_producto in self.productos:
             raise CodigoDuplicadoError("El ID del producto ya existe.")
-        self.productos[producto.id_producto] = producto
+        idp = input("Ingrese el id del producto: ")
+        nombre = input("Ingrese el nombre del producto: ")
+        precio = input("Ingrese el precio del producto: ")
+        idc = input("Ingrese el id del categoria del producto: ")
+        if idc not in self.productos:
+            print("Error: La categoría no existe. Agrega primero la categoría.")
+        else:
+            stock = input("Ingrese el stock del producto: ")
+            fecha_caducidad = input("Ingrese la fecha de caducidad: ")
+            self.productos[producto.id_producto] = producto(idp, nombre, precio, idc , stock, fecha_caducidad)
+
 
     def eliminar_producto(self, id_producto):
         if id_producto not in self.productos:
@@ -222,3 +247,18 @@ class Ordenamiento:
             raise ValueError("Criterio inválido.")
 
         return self.quick_sort(menores, clave) + [pivote] + iguales + self.quick_sort(mayores, clave)
+
+class Menu:
+    def menu(self):
+        print("=== Gestion de supermercado")
+        print("1. Agregar un producto")
+        print("2. Buscar un producto")
+        print("3. Mostrar inventario")
+        print("4. Eliminar un producto")
+        print("5. Agregar una categoria")
+        print("6. Eliminar un categoria")
+        print("7. Agregar empleados")
+        print("8. Agregar proveedores")
+        print("9. Registrar venta")
+        print("10. Registrar compra")
+        print("11. Salir")
