@@ -20,6 +20,23 @@ class ManipulacionCategorias:
         self.categoria[idc] = Categorias(idc,nombre)
         print("Categorias agregada exitosamente")
 
+    def mostrar_categorias(self):
+        if not self.categoria:
+            print("No hay categorias registradas.")
+        else:
+            for c in self.categoria.values():
+                print(f"categoria: {c.id_categoria}, nombre: {c.nombre}")
+
+    def eliminar_categoria(self):
+        if idc not in self.categoria:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        if idc in self.categoria:
+            del self.categoria[idc]
+            print("Categoria eliminada correctamente.")
+        else:
+            print("No hay categorias registradas.")
+
+
 
 class Productos:
     def __init__(self, id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
@@ -50,6 +67,48 @@ class Productos:
 
     def __str__(self):
         return f"[{self.id_producto}] {self.nombre} | Cat: {self.id_categoria} | Precio: Q{self.precio:.2f} | Stock: {self.stock}"
+
+class ManipulacionInventario:
+    def __init__(self):
+        self.productos = {}
+        self.contador_id = 1
+
+    def generar_id(self):
+        nuevo_id = f"P{self.contador_id:03d}"
+        self.contador_id += 1
+        return nuevo_id
+
+    def agregar_producto(self, producto):
+        if producto.id_producto in self.productos:
+            raise CodigoDuplicadoError("El ID del producto ya existe.")
+        idp = self.generar_id()
+        nombre = input("Ingrese el nombre del producto: ")
+        precio = input("Ingrese el precio del producto: ")
+        idc = input("Ingrese el id del categoria del producto: ")
+        if idc not in self.productos:
+            print("Error: La categoría no existe. Agrega primero la categoría.")
+        else:
+            stock = input("Ingrese el stock del producto: ")
+            fecha_caducidad = input("Ingrese la fecha de caducidad: ")
+            self.productos[producto.id_producto] = producto(idp, nombre, precio, idc , stock, fecha_caducidad)
+
+
+    def eliminar_producto(self, id_producto):
+        if id_producto not in self.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        del self.productos[id_producto]
+
+    def actualizar_producto(self, id_producto, nuevo_precio=None, nuevo_stock=None):
+        if id_producto not in self.productos:
+            raise RegistroNoExisteError("No se encontró el producto.")
+        producto = self.productos[id_producto]
+        if nuevo_precio is not None:
+            producto.actualizar_precio(nuevo_precio)
+        if nuevo_stock is not None:
+            producto.actualizar_stock(nuevo_stock)
+
+    def obtener_lista(self):
+        return list(self.productos.values())
 
 class Clientes:
     def __init__(self, nit, nombre, telefono, direccion, correo):
@@ -164,42 +223,6 @@ class ManipulacionProveedores:
         else:
             for p in self.proveedores.values():
                 print(f"ID: {p.id_proveedor} | Nombre: {p.nombre} | Empresa: {p.empresa}")
-
-class ManipulacionInventario:
-    def __init__(self):
-        self.productos = {}
-
-    def agregar_producto(self, producto):
-        if producto.id_producto in self.productos:
-            raise CodigoDuplicadoError("El ID del producto ya existe.")
-        idp = input("Ingrese el id del producto: ")
-        nombre = input("Ingrese el nombre del producto: ")
-        precio = input("Ingrese el precio del producto: ")
-        idc = input("Ingrese el id del categoria del producto: ")
-        if idc not in self.productos:
-            print("Error: La categoría no existe. Agrega primero la categoría.")
-        else:
-            stock = input("Ingrese el stock del producto: ")
-            fecha_caducidad = input("Ingrese la fecha de caducidad: ")
-            self.productos[producto.id_producto] = producto(idp, nombre, precio, idc , stock, fecha_caducidad)
-
-
-    def eliminar_producto(self, id_producto):
-        if id_producto not in self.productos:
-            raise RegistroNoExisteError("No se encontró el producto.")
-        del self.productos[id_producto]
-
-    def actualizar_producto(self, id_producto, nuevo_precio=None, nuevo_stock=None):
-        if id_producto not in self.productos:
-            raise RegistroNoExisteError("No se encontró el producto.")
-        producto = self.productos[id_producto]
-        if nuevo_precio is not None:
-            producto.actualizar_precio(nuevo_precio)
-        if nuevo_stock is not None:
-            producto.actualizar_stock(nuevo_stock)
-
-    def obtener_lista(self):
-        return list(self.productos.values())
 
 class Ventas:
     def __init__(self, id_venta, fecha, id_cliente, id_empleado):
@@ -441,14 +464,76 @@ while opcion != 23:
     match opcion:
         case 1:
             try:
-                idp = input("Ingrese el ID del producto: ")
                 nombre = input("Ingrese el nombre: ")
                 idc = input("Ingrese el ID de la categoría: ")
                 precio = float(input("Ingrese el precio: "))
                 stock = int(input("Ingrese el stock: "))
                 fecha = input("Ingrese la fecha de caducidad: ")
-                producto = Productos(idp, nombre, idc, precio, stock, fecha)
+                producto = Productos(nombre, idc, precio, stock, fecha)
                 manipulacion_inventario.agregar_producto(producto)
                 print("Producto agregado correctamente.")
             except Exception as e:
                 print(f"Error: {e}")
+
+        case 2:
+            lista = manipulacion_inventario.obtener_lista()
+            if not lista:
+                print("No hay productos registrados.")
+            else:
+                for p in lista:
+                    print(p)
+
+        case 3:
+            idp = input("Ingrese el ID del producto a eliminar: ")
+            try:
+                manipulacion_inventario.eliminar_producto(idp)
+                print("Producto eliminado correctamente.")
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 4:
+            idp = input("Ingrese el ID del producto a actualizar: ")
+            nuevo_precio = float(input("Nuevo precio (deje vacío para no cambiar): ") or -1)
+            nuevo_stock = int(input("Nuevo stock (deje vacío para no cambiar): ") or -1)
+            try:
+                manipulacion_inventario.actualizar_producto(
+                    idp,
+                    nuevo_precio if nuevo_precio >= 0 else None,
+                    nuevo_stock if nuevo_stock >= 0 else None
+                )
+                print("Producto actualizado correctamente.")
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 5:
+            criterio = input("Buscar por (id_producto/nombre/categoria): ")
+            valor = input("Valor a buscar: ")
+            lista = manipulacion_inventario.obtener_lista()
+            resultados = buscador.buscar_valor(lista, criterio, valor)
+            if resultados:
+                for r in resultados:
+                    print(r)
+            else:
+                print("No se encontraron resultados.")
+
+        case 6:
+            manipulacion_categorias.agregar_categoria()
+
+        case 7:
+            if not manipulacion_categorias.categoria:
+                print("No hay categorías registradas.")
+            else:
+                for c in manipulacion_categorias.categoria.values():
+                    print(f"ID: {c.id_categoria} | Nombre: {c.nombre}")
+
+        case 8:
+            idc = int(input("Ingrese el ID de la categoría a eliminar: "))
+            manipulacion_categorias.eliminar_categoria()
+
+
+        case 9:
+            try:
+                manipulacion_empleados.agregar_empleado()
+            except Exception as e:
+                print(f"Error: {e}")
+
