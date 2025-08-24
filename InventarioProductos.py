@@ -59,6 +59,34 @@ class Clientes:
         self.direccion = direccion
         self.correo = correo
 
+class ManipulacionClientes:
+    def __init__(self):
+        self.clientes = {}
+
+    def agregar_cliente(self):
+        nit = input("Ingrese el NIT del cliente: ")
+        nombre = input("Ingrese el nombre del cliente: ")
+        telefono = input("Ingrese el teléfono del cliente: ")
+        direccion = input("Ingrese la dirección del cliente: ")
+        correo = input("Ingrese el correo del cliente: ")
+        if nit in self.clientes:
+            raise CodigoDuplicadoError("El cliente con este NIT ya existe.")
+        self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
+        print("Cliente agregado exitosamente.")
+
+    def eliminar_cliente(self, nit):
+        if nit not in self.clientes:
+            raise RegistroNoExisteError("No se encontró el cliente.")
+        del self.clientes[nit]
+        print("Cliente eliminado exitosamente.")
+
+    def mostrar_clientes(self):
+        if not self.clientes:
+            print("No hay clientes registrados.")
+        else:
+            for c in self.clientes.values():
+                print(f"NIT: {c.nit} | Nombre: {c.nombre} | Tel: {c.telefono}")
+
 
 class Empleados:
     def __init__(self, id_empleado, nombre, telefono, direccion, correo):
@@ -70,7 +98,31 @@ class Empleados:
 
 class ManipulacionEmpleados:
     def __init__(self):
-        self.empleado = {}
+        self.empleados = {}
+
+    def agregar_empleado(self):
+        ide = input("Ingrese el ID del empleado: ")
+        nombre = input("Ingrese el nombre del empleado: ")
+        telefono = input("Ingrese el teléfono del empleado: ")
+        direccion = input("Ingrese la dirección del empleado: ")
+        correo = input("Ingrese el correo del empleado: ")
+        if ide in self.empleados:
+            raise CodigoDuplicadoError("El empleado con este ID ya existe.")
+        self.empleados[ide] = Empleados(ide, nombre, telefono, direccion, correo)
+        print("Empleado agregado exitosamente.")
+
+    def eliminar_empleado(self, ide):
+        if ide not in self.empleados:
+            raise RegistroNoExisteError("No se encontró el empleado.")
+        del self.empleados[ide]
+        print("Empleado eliminado exitosamente.")
+
+    def mostrar_empleados(self):
+        if not self.empleados:
+            print("No hay empleados registrados.")
+        else:
+            for e in self.empleados.values():
+                print(f"ID: {e.id_empleado} | Nombre: {e.nombre} | Tel: {e.telefono}")
 
 
 class Proveedores:
@@ -85,17 +137,33 @@ class Proveedores:
 
 class ManipulacionProveedores:
     def __init__(self):
-        self.proveedores: {}
+        self.proveedores = {}
 
-    def agregar_proveedores(self):
-        id_proveedor = int(input("Ingrese el id del proveedor: "))
+    def agregar_proveedor(self):
+        id_proveedor = input("Ingrese el ID del proveedor: ")
         nombre = input("Ingrese el nombre del proveedor: ")
-        telefono = input("Ingrese el telefono del proveedor: ")
-        direccion = input("Ingrese el direccion del proveedor: ")
+        empresa = input("Ingrese la empresa del proveedor: ")
+        nit = input("Ingrese el NIT del proveedor: ")
+        telefono = input("Ingrese el teléfono del proveedor: ")
+        direccion = input("Ingrese la dirección del proveedor: ")
         correo = input("Ingrese el correo del proveedor: ")
-        empresa = input("Ingrese el nombre de la empresa del proveedor: ")
-        nit = input("Ingrese el nit del proveedor: ")
-        self.proveedores[id_proveedor] = Proveedores(id_proveedor, nombre, telefono, direccion, correo,empresa,nit)
+        if id_proveedor in self.proveedores:
+            raise CodigoDuplicadoError("El proveedor con este ID ya existe.")
+        self.proveedores[id_proveedor] = Proveedores(id_proveedor, nombre, empresa, nit, telefono, direccion, correo)
+        print("Proveedor agregado exitosamente.")
+
+    def eliminar_proveedor(self, id_proveedor):
+        if id_proveedor not in self.proveedores:
+            raise RegistroNoExisteError("No se encontró el proveedor.")
+        del self.proveedores[id_proveedor]
+        print("Proveedor eliminado exitosamente.")
+
+    def mostrar_proveedores(self):
+        if not self.proveedores:
+            print("No hay proveedores registrados.")
+        else:
+            for p in self.proveedores.values():
+                print(f"ID: {p.id_proveedor} | Nombre: {p.nombre} | Empresa: {p.empresa}")
 
 class Ventas:
     def __init__(self, id_venta, fecha, id_cliente, id_empleado):
@@ -194,6 +262,28 @@ class DetallesVentas:
         self.precio = precio
         self.subtotal = subtotal
 
+    def calcular_subtotal(self):
+        """Recalcula el subtotal en caso de que cambie precio o cantidad."""
+        self.subtotal = self.cantidad * self.precio
+
+    def mostrar_detalle(self):
+        """Devuelve el detalle en un formato legible."""
+        return f"Detalle {self.id_detalle}: Producto {self.id_producto} | Cant: {self.cantidad} | Precio: Q{self.precio:.2f} | Subtotal: Q{self.subtotal:.2f}"
+
+    def actualizar_cantidad(self, nueva_cantidad):
+        """Permite modificar la cantidad del producto en el detalle."""
+        if nueva_cantidad <= 0:
+            raise ValueError("La cantidad debe ser mayor a 0.")
+        self.cantidad = nueva_cantidad
+        self.calcular_subtotal()
+
+    def actualizar_precio(self, nuevo_precio):
+        """Permite modificar el precio del producto en el detalle."""
+        if nuevo_precio < 0:
+            raise ValueError("El precio no puede ser negativo.")
+        self.precio = nuevo_precio
+        self.calcular_subtotal()
+
 
 class Compras:
     def __init__(self, id_compra, fecha, id_proveedor, id_empleado):
@@ -217,6 +307,59 @@ class DetallesCompras:
         self.cantidad = cantidad
         self.precio_compra = precio_compra
         self.subtotal = subtotal
+
+    def calcular_subtotal(self):
+        """Recalcula el subtotal en caso de que cambie cantidad o precio de compra."""
+        self.subtotal = self.cantidad * self.precio_compra
+
+    def mostrar_detalle(self):
+        """Devuelve el detalle en un formato legible."""
+        return f"Detalle {self.id_detalle}: Producto {self.id_producto} | Cant: {self.cantidad} | Precio compra: Q{self.precio_compra:.2f} | Subtotal: Q{self.subtotal:.2f}"
+
+    def actualizar_cantidad(self, nueva_cantidad):
+        """Permite modificar la cantidad del producto en la compra."""
+        if nueva_cantidad <= 0:
+            raise ValueError("La cantidad debe ser mayor a 0.")
+        self.cantidad = nueva_cantidad
+        self.calcular_subtotal()
+
+    def actualizar_precio(self, nuevo_precio):
+        """Permite modificar el precio de compra del producto."""
+        if nuevo_precio < 0:
+            raise ValueError("El precio no puede ser negativo.")
+        self.precio_compra = nuevo_precio
+        self.calcular_subtotal()
+
+class ManipulacionCompras:
+    def __init__(self):
+        self.historial = []
+
+    def registrar_compra(self):
+        id_compra = input("Ingrese el ID de la compra: ")
+        fecha = input("Ingrese la fecha: ")
+        id_proveedor = input("Ingrese el ID del proveedor: ")
+        id_empleado = input("Ingrese el ID del empleado que registró la compra: ")
+        compra = Compras(id_compra, fecha, id_proveedor, id_empleado)
+
+        while True:
+            id_producto = input("Ingrese el ID del producto (o '0' para terminar): ")
+            if id_producto == "0":
+                break
+            cantidad = int(input("Ingrese la cantidad: "))
+            precio = float(input("Ingrese el precio de compra: "))
+            subtotal = cantidad * precio
+            detalle = DetallesCompras(len(compra.detalles)+1, id_compra, id_producto, cantidad, precio, subtotal)
+            compra.agregar_detalle(detalle)
+
+        self.historial.append(compra)
+        print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
+
+    def mostrar_historial(self):
+        if not self.historial:
+            print("No hay compras registradas.")
+        else:
+            for c in self.historial:
+                print(f"Compra {c.id_compra} | Proveedor: {c.id_proveedor} | Total: Q{c.total:.2f}")
 
 class Buscar:
     def buscar_valor(self, lista, criterio, valor):
