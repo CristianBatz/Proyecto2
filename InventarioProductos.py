@@ -292,6 +292,33 @@ class Ventas:
         self.detalles.append(detalle)
         self.total += detalle.subtotal
 
+class DetallesVentas:
+    def __init__(self, id_detalle, id_venta, id_producto, cantidad, precio, subtotal):
+        self.id_detalle = id_detalle
+        self.id_venta = id_venta
+        self.id_producto = id_producto
+        self.cantidad = cantidad
+        self.precio = precio
+        self.subtotal = subtotal
+
+    def calcular_subtotal(self):
+        self.subtotal = self.cantidad * self.precio
+
+    def mostrar_detalle(self):
+        return f"Detalle {self.id_detalle}: Producto {self.id_producto} | Cant: {self.cantidad} | Precio: Q{self.precio:.2f} | Subtotal: Q{self.subtotal:.2f}"
+
+    def actualizar_cantidad(self, nueva_cantidad):
+        if nueva_cantidad <= 0:
+            raise ValueError("La cantidad debe ser mayor a 0.")
+        self.cantidad = nueva_cantidad
+        self.calcular_subtotal()
+
+    def actualizar_precio(self, nuevo_precio):
+        if nuevo_precio < 0:
+            raise ValueError("El precio no puede ser negativo.")
+        self.precio = nuevo_precio
+        self.calcular_subtotal()
+
 
 class ManipulacionVentas:
     def __init__(self, inventario: ManipulacionInventario):
@@ -331,34 +358,6 @@ class ManipulacionVentas:
             return
         for _, nombre, cantidad, total in ventas_filtradas:
             print(f"{nombre} - {cantidad} unidades - Q{total:.2f}")
-
-
-class DetallesVentas:
-    def __init__(self, id_detalle, id_venta, id_producto, cantidad, precio, subtotal):
-        self.id_detalle = id_detalle
-        self.id_venta = id_venta
-        self.id_producto = id_producto
-        self.cantidad = cantidad
-        self.precio = precio
-        self.subtotal = subtotal
-
-    def calcular_subtotal(self):
-        self.subtotal = self.cantidad * self.precio
-
-    def mostrar_detalle(self):
-        return f"Detalle {self.id_detalle}: Producto {self.id_producto} | Cant: {self.cantidad} | Precio: Q{self.precio:.2f} | Subtotal: Q{self.subtotal:.2f}"
-
-    def actualizar_cantidad(self, nueva_cantidad):
-        if nueva_cantidad <= 0:
-            raise ValueError("La cantidad debe ser mayor a 0.")
-        self.cantidad = nueva_cantidad
-        self.calcular_subtotal()
-
-    def actualizar_precio(self, nuevo_precio):
-        if nuevo_precio < 0:
-            raise ValueError("El precio no puede ser negativo.")
-        self.precio = nuevo_precio
-        self.calcular_subtotal()
 
 
 class Compras:
@@ -402,7 +401,8 @@ class DetallesCompras:
         self.calcular_subtotal()
 
 class ManipulacionCompras:
-    def __init__(self):
+    def __init__(self, inventario: ManipulacionInventario):
+        self.inventario = inventario
         self.historial = []
 
     def registrar_compra(self):
@@ -418,9 +418,12 @@ class ManipulacionCompras:
                 break
             cantidad = int(input("Ingrese la cantidad: "))
             precio = float(input("Ingrese el precio de compra: "))
+            producto = self.inventario.productos[id_producto]
             subtotal = cantidad * precio
             detalle = DetallesCompras(len(compra.detalles) + 1, id_compra, id_producto, cantidad, precio, subtotal)
             compra.agregar_detalle(detalle)
+            producto.stock += cantidad
+            self.historial.append((producto.id_producto, producto.nombre, cantidad, subtotal))
 
         self.historial.append(compra)
         print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
@@ -430,7 +433,7 @@ class ManipulacionCompras:
             print("No hay compras registradas.")
         else:
             for c in self.historial:
-                print(f"Compra {c.id_compra} | Proveedor: {c.id_proveedor} | Total: Q{c.total:.2f}")
+                print(f"Compra: {c.id_compra} | Proveedor: {c.id_proveedor} | Total: Q{c.total:.2f}")
 
 class Buscar:
     def buscar_valor(self, lista, criterio, valor):
@@ -507,7 +510,7 @@ manipulacion_clientes = ManipulacionClientes()
 manipulacion_empleados = ManipulacionEmpleados()
 manipulacion_proveedores = ManipulacionProveedores()
 manipulacion_ventas = ManipulacionVentas(manipulacion_inventario)
-manipulacion_compras = ManipulacionCompras()
+manipulacion_compras = ManipulacionCompras(manipulacion_inventario)
 buscador = Buscar()
 ordenamiento = Ordenamiento()
 menu = Menu()
@@ -553,11 +556,7 @@ while opcion != 23:
             entrada_stock = input("Nuevo stock (deje vacío para no cambiar): ")
             nuevo_stock = int(entrada_stock) if entrada_stock.strip() else None
             try:
-                manipulacion_inventario.actualizar_producto(
-                    idp,
-                    nuevo_precio if nuevo_precio >= 0 else None,
-                    nuevo_stock if nuevo_stock >= 0 else None
-                )
+                manipulacion_inventario.actualizar_producto(idp, nuevo_precio,nuevo_stock )
                 print("Producto actualizado correctamente.")
             except Exception as e:
                 print(f"Error: {e}")
