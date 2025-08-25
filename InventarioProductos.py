@@ -5,20 +5,28 @@ class CodigoDuplicadoError(Exception):
 class RegistroNoExisteError(Exception):
     pass
 
+
 class Categorias:
     def __init__(self, id_categoria, nombre):
         self.id_categoria = id_categoria
         self.nombre = nombre
+
 
 class ManipulacionCategorias:
     def __init__(self):
         self.categoria = {}
 
     def agregar_categoria(self):
-        idc= int(input("Ingrese el id del categoria: "))
-        nombre =input("Ingrese el nombre del categoria: ")
-        self.categoria[idc] = Categorias(idc,nombre)
-        print("Categorias agregada exitosamente")
+        try:
+            idc = int(input("Ingrese el ID de la categoría: "))
+            nombre = input("Ingrese el nombre de la categoría: ")
+            if idc in manipulacion_categorias.categoria:
+                print("Error: Ya existe una categoría con ese ID.")
+            else:
+                manipulacion_categorias.categoria[idc] = Categorias(idc, nombre)
+                print(f"Categoría '{nombre}' agregada correctamente con ID {idc}.")
+        except ValueError:
+            print("Error: El ID debe ser un número entero.")
 
     def mostrar_categorias(self):
         if not self.categoria:
@@ -28,6 +36,7 @@ class ManipulacionCategorias:
                 print(f"categoria: {c.id_categoria}, nombre: {c.nombre}")
 
     def eliminar_categoria(self):
+        idc = int(input("Ingrese el ID de la categoría a eliminar: "))
         if idc not in self.categoria:
             raise RegistroNoExisteError("No se encontró el producto.")
         if idc in self.categoria:
@@ -37,11 +46,10 @@ class ManipulacionCategorias:
             print("No hay categorias registradas.")
 
 
-
 class Productos:
-    def __init__(self, id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
+    def __init__(self,id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
         if not id_producto.strip():
-            raise ValueError("El ID del producto no puede quedar vacío.")
+            raise ValueError("El nombre no puede quedar vacío.")
         if not nombre.strip():
             raise ValueError("El nombre no puede quedar vacío.")
         if precio < 0:
@@ -68,6 +76,7 @@ class Productos:
     def __str__(self):
         return f"[{self.id_producto}] {self.nombre} | Cat: {self.id_categoria} | Precio: Q{self.precio:.2f} | Stock: {self.stock}"
 
+
 class ManipulacionInventario:
     def __init__(self):
         self.productos = {}
@@ -78,20 +87,15 @@ class ManipulacionInventario:
         self.contador_id += 1
         return nuevo_id
 
-    def agregar_producto(self, producto):
-        if producto.id_producto in self.productos:
-            raise CodigoDuplicadoError("El ID del producto ya existe.")
-        idp = self.generar_id()
-        nombre = input("Ingrese el nombre del producto: ")
-        precio = input("Ingrese el precio del producto: ")
-        idc = input("Ingrese el id del categoria del producto: ")
-        if idc not in self.productos:
+    def agregar_producto(self, nombre, id_categoria, precio, stock, fecha_caducidad):
+        if id_categoria not in manipulacion_categorias.categoria:
             print("Error: La categoría no existe. Agrega primero la categoría.")
-        else:
-            stock = input("Ingrese el stock del producto: ")
-            fecha_caducidad = input("Ingrese la fecha de caducidad: ")
-            self.productos[producto.id_producto] = producto(idp, nombre, precio, idc , stock, fecha_caducidad)
+            return
 
+        idp = self.generar_id()
+        nuevo_producto = Productos(idp, nombre, id_categoria, precio, stock, fecha_caducidad)
+        self.productos[idp] = nuevo_producto
+        print(f"Producto agregado correctamente con ID {idp}.")
 
     def eliminar_producto(self, id_producto):
         if id_producto not in self.productos:
@@ -110,6 +114,7 @@ class ManipulacionInventario:
     def obtener_lista(self):
         return list(self.productos.values())
 
+
 class Clientes:
     def __init__(self, nit, nombre, telefono, direccion, correo):
         self.nit = nit
@@ -117,6 +122,7 @@ class Clientes:
         self.telefono = telefono
         self.direccion = direccion
         self.correo = correo
+
 
 class ManipulacionClientes:
     def __init__(self):
@@ -154,6 +160,7 @@ class Empleados:
         self.telefono = telefono
         self.direccion = direccion
         self.correo = correo
+
 
 class ManipulacionEmpleados:
     def __init__(self):
@@ -194,6 +201,7 @@ class Proveedores:
         self.direccion = direccion
         self.correo = correo
 
+
 class ManipulacionProveedores:
     def __init__(self):
         self.proveedores = {}
@@ -224,6 +232,7 @@ class ManipulacionProveedores:
             for p in self.proveedores.values():
                 print(f"ID: {p.id_proveedor} | Nombre: {p.nombre} | Empresa: {p.empresa}")
 
+
 class Ventas:
     def __init__(self, id_venta, fecha, id_cliente, id_empleado):
         self.id_venta = id_venta
@@ -236,6 +245,7 @@ class Ventas:
     def agregar_detalle(self, detalle):
         self.detalles.append(detalle)
         self.total += detalle.subtotal
+
 
 class ManipulacionVentas:
     def __init__(self, inventario: ManipulacionInventario):
@@ -275,6 +285,7 @@ class ManipulacionVentas:
             return
         for _, nombre, cantidad, total in ventas_filtradas:
             print(f"{nombre} - {cantidad} unidades - Q{total:.2f}")
+
 
 class DetallesVentas:
     def __init__(self, id_detalle, id_venta, id_producto, cantidad, precio, subtotal):
@@ -317,6 +328,7 @@ class Compras:
         self.detalles.append(detalle)
         self.total += detalle.subtotal
 
+
 class ManipulacionCompras:
     def __init__(self):
         self.historial = []
@@ -335,7 +347,7 @@ class ManipulacionCompras:
             cantidad = int(input("Ingrese la cantidad: "))
             precio = float(input("Ingrese el precio de compra: "))
             subtotal = cantidad * precio
-            detalle = DetallesCompras(len(compra.detalles)+1, id_compra, id_producto, cantidad, precio, subtotal)
+            detalle = DetallesCompras(len(compra.detalles) + 1, id_compra, id_producto, cantidad, precio, subtotal)
             compra.agregar_detalle(detalle)
 
         self.historial.append(compra)
@@ -376,6 +388,7 @@ class DetallesCompras:
         self.precio_compra = nuevo_precio
         self.calcular_subtotal()
 
+
 class Buscar:
     def buscar_valor(self, lista, criterio, valor):
         resultados = []
@@ -388,6 +401,7 @@ class Buscar:
             elif criterio == "categoria" and valor in item.id_categoria.lower():
                 resultados.append(item)
         return resultados
+
 
 class Ordenamiento:
     def quick_sort(self, lista, clave):
@@ -414,6 +428,7 @@ class Ordenamiento:
             raise ValueError("Criterio inválido.")
 
         return self.quick_sort(menores, clave) + [pivote] + iguales + self.quick_sort(mayores, clave)
+
 
 class Menu:
     def menu(self):
@@ -442,6 +457,7 @@ class Menu:
         print("22. Mostrar historial de compras")
         print("23. Salir")
 
+
 manipulacion_inventario = ManipulacionInventario()
 manipulacion_categorias = ManipulacionCategorias()
 manipulacion_clientes = ManipulacionClientes()
@@ -461,17 +477,18 @@ while opcion != 23:
         print("Opcion no valida")
         continue
 
-    match opcion:
+    match int(opcion):
         case 1:
             try:
-                nombre = input("Ingrese el nombre: ")
-                idc = input("Ingrese el ID de la categoría: ")
+                nombre = input("Ingrese el nombre del producto: ")
+                idc = int(input("Ingrese el ID de la categoría: "))
                 precio = float(input("Ingrese el precio: "))
                 stock = int(input("Ingrese el stock: "))
                 fecha = input("Ingrese la fecha de caducidad: ")
-                producto = Productos(nombre, idc, precio, stock, fecha)
-                manipulacion_inventario.agregar_producto(producto)
-                print("Producto agregado correctamente.")
+
+                manipulacion_inventario.agregar_producto(nombre, idc, precio, stock, fecha)
+            except ValueError:
+                print("Error: Uno de los valores ingresados no tiene el formato correcto.")
             except Exception as e:
                 print(f"Error: {e}")
 
@@ -527,9 +544,7 @@ while opcion != 23:
                     print(f"ID: {c.id_categoria} | Nombre: {c.nombre}")
 
         case 8:
-            idc = int(input("Ingrese el ID de la categoría a eliminar: "))
             manipulacion_categorias.eliminar_categoria()
-
 
         case 9:
             try:
@@ -537,3 +552,71 @@ while opcion != 23:
             except Exception as e:
                 print(f"Error: {e}")
 
+        case 10:
+            manipulacion_empleados.mostrar_empleados()
+
+        case 11:
+            ide = input("Ingrese el ID del empleado a eliminar: ")
+            try:
+                manipulacion_empleados.eliminar_empleado(ide)
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 12:
+            try:
+                manipulacion_proveedores.agregar_proveedor()
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 13:
+            manipulacion_proveedores.mostrar_proveedores()
+
+        case 14:
+            idp = input("Ingrese el ID del proveedor a eliminar: ")
+            try:
+                manipulacion_proveedores.eliminar_proveedor(idp)
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 15:
+            try:
+                manipulacion_clientes.agregar_cliente()
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 16:
+            manipulacion_clientes.mostrar_clientes()
+
+        case 17:
+            nit = input("Ingrese el NIT del cliente a eliminar: ")
+            try:
+                manipulacion_clientes.eliminar_cliente(nit)
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 18:
+            codigo = input("Ingrese el código del producto: ")
+            cantidad = int(input("Ingrese la cantidad: "))
+            try:
+                manipulacion_ventas.vender(codigo, cantidad)
+            except Exception as e:
+                print(f"Error: {e}")
+
+        case 19:
+            manipulacion_ventas.mostrar_historial()
+
+        case 20:
+            codigo = input("Ingrese el código del producto: ")
+            manipulacion_ventas.filtrar_por_codigo(codigo)
+
+        case 21:
+            manipulacion_compras.registrar_compra()
+
+        case 22:
+            manipulacion_compras.mostrar_historial()
+
+        case 23:
+            print("Saliendo del sistema")
+
+        case _:
+            print(" Opción inválida.")
