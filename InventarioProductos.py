@@ -173,6 +173,24 @@ class Clientes:
 class ManipulacionClientes:
     def __init__(self):
         self.clientes = {}
+        self.cargar_clientes()
+
+    def cargar_clientes(self):
+        try:
+            with open("clientes.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        nit, nombre,telefono, direccion , correo = linea.split(":")
+                        self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
+            print("Clientes importados desde clientes.txt")
+        except FileNotFoundError:
+            print("No existe el archivo clientes.txt, se creará uno nuevo al guardar.")
+
+    def guardar_clientes(self):
+        with open("clientes.txt", "w", encoding="utf-8") as archivo:
+            for nit, datos in self.clientes.items():
+                archivo.write(f"{nit}:{datos.nombre}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
 
     def agregar_cliente(self):
         nit = input("Ingrese el NIT del cliente: ")
@@ -183,7 +201,20 @@ class ManipulacionClientes:
         if nit in self.clientes:
             raise CodigoDuplicadoError("El cliente con este NIT ya existe.")
         self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
-        print("Cliente agregado exitosamente.")
+        self.guardar_clientes()
+        print(f"Cliente con NIT {nit} agregado y guardado correctamente.")
+
+    def mostrar_todos(self):
+        if self.clientes:
+            print("\nLista de clientes:")
+            for nit, datos in self.clientes.items():
+                print(f"\n nit: {nit}")
+                print(f"nombre: {datos.nombre}")
+                print(f"telefono: {datos.telefono}")
+                print(f"direccion: {datos.direccion}")
+                print(f"correo: {datos.correo}")
+        else:
+            print("No hay clientes registrados.")
 
     def eliminar_cliente(self, nit):
         if nit not in self.clientes:
@@ -211,6 +242,24 @@ class Empleados:
 class ManipulacionEmpleados:
     def __init__(self):
         self.empleados = {}
+        self.cargar_empleados()
+
+    def cargar_empleados(self):
+        try:
+            with open("Empleados.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        id_empleado,nombre,telefono,direccion,correo = linea.split(":")
+                        self.empleados[id_empleado] = Empleados(id_empleado,nombre,telefono,direccion,correo)
+            print("Empleados importados desde Empleados.txt")
+        except FileNotFoundError:
+            print("No existe el archivo Empleados.txt, se creará uno nuevo al guardar.")
+
+    def guardar_empleados(self):
+        with open("Empleados.txt", "w", encoding="utf-8") as archivo:
+            for id_empleado, datos in self.empleados.items():
+                archivo.write(f"{id_empleado}:{datos.nombre}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
 
     def agregar_empleado(self):
         ide = input("Ingrese el ID del empleado: ")
@@ -221,6 +270,7 @@ class ManipulacionEmpleados:
         if ide in self.empleados:
             raise CodigoDuplicadoError("El empleado con este ID ya existe.")
         self.empleados[ide] = Empleados(ide, nombre, telefono, direccion, correo)
+        self.guardar_empleados()
         print("Empleado agregado exitosamente.")
 
     def eliminar_empleado(self, ide):
@@ -251,6 +301,24 @@ class Proveedores:
 class ManipulacionProveedores:
     def __init__(self):
         self.proveedores = {}
+        self.cargar_proveedores()
+
+    def cargar_proveedores(self):
+        try:
+            with open("Proveedores.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        id_proveedor,nombre,empresa,nit,telefono,direccion,correo = linea.split(":")
+                        self.proveedores[id_proveedor] = Proveedores(id_proveedor,nombre,empresa,nit,telefono,direccion,correo)
+            print("Proveedores importados desde Proveedores.txt")
+        except FileNotFoundError:
+            print("No existe el archivo Proveedores.txt, se creará uno nuevo al guardar.")
+
+    def guardar_proveedores(self):
+        with open("Proveedores.txt", "w", encoding="utf-8") as archivo:
+            for id_proveedor, datos in self.proveedores.items():
+                archivo.write(f"{id_proveedor}:{datos.nombre}:{datos.empresa}:{datos.nit}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
 
     def agregar_proveedor(self):
         id_proveedor = input("Ingrese el ID del proveedor: ")
@@ -263,7 +331,8 @@ class ManipulacionProveedores:
         if id_proveedor in self.proveedores:
             raise CodigoDuplicadoError("El proveedor con este ID ya existe.")
         self.proveedores[id_proveedor] = Proveedores(id_proveedor, nombre, empresa, nit, telefono, direccion, correo)
-        print("Proveedor agregado exitosamente.")
+        self.guardar_proveedores()
+        print(f"Proveedor con ID:{id_proveedor} agregado exitosamente.")
 
     def eliminar_proveedor(self, id_proveedor):
         if id_proveedor not in self.proveedores:
@@ -276,7 +345,7 @@ class ManipulacionProveedores:
             print("No hay proveedores registrados.")
         else:
             for p in self.proveedores.values():
-                print(f"ID: {p.id_proveedor} | Nombre: {p.nombre} | Empresa: {p.empresa}")
+                print(f"ID: {p.id_proveedor} | Nombre: {p.nombre} | Empresa: {p.empresa} | Telefono: {p.telefono}")
 
 
 class Ventas:
