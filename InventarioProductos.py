@@ -15,6 +15,25 @@ class Categorias:
 class ManipulacionCategorias:
     def __init__(self):
         self.categoria = {}
+        self.cargar_categorias()
+
+    def cargar_categorias(self):
+        try:
+            with open("categorias.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        id_categoria,nombre = linea.split(":")
+                        id_categoria = int(id_categoria)
+                        self.categoria[id_categoria] = Categorias(id_categoria, nombre)
+            print("categoria importados desde categorias.txt")
+        except FileNotFoundError:
+            print("No existe el archivo categorias.txt, se creará uno nuevo al guardar.")
+
+    def guardar_categoria(self):
+        with open("categorias.txt", "w", encoding="utf-8") as archivo:
+            for id_categoria, datos in self.categoria.items():
+                archivo.write(f"{id_categoria}:{datos.nombre}\n")
 
     def agregar_categoria(self):
         try:
@@ -24,6 +43,7 @@ class ManipulacionCategorias:
                 print("Error: Ya existe una categoría con ese ID.")
             else:
                 self.categoria[idc] = Categorias(idc, nombre)
+                self.guardar_categoria()
                 print(f"Categoría '{nombre}' agregada correctamente con ID {idc}.")
         except ValueError:
             print("Error: El ID debe ser un número entero.")
