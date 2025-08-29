@@ -546,10 +546,10 @@ class ManipulacionVentas:
         subtotal = cantidad * producto.precio
         detalle = DetallesVentas(id_detalle, id_venta, id_producto, cantidad, producto.precio, subtotal)
         venta.agregar_detalle(detalle)
-        self.guardar_detalles()
-        self.guardar_ventas()
         self.ventas[id_venta] = venta
         self.detalles_ventas[id_detalle] = detalle
+        self.guardar_detalles()
+        self.guardar_ventas()
         print(f"Total: Q{subtotal:.2f}")
 
     def mostrar_historial(self):
@@ -723,9 +723,9 @@ class ManipulacionCompras:
             compra.agregar_detalle(detalle)
             self.detalles_compras[id_detalle] = detalle
             producto.stock += cantidad
+        self.compras[id_compra] = compra
         self.guardar_detalles()
         self.guardar_compras()
-        self.compras[id_compra] = compra
         print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
 
 
