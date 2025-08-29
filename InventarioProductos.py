@@ -717,7 +717,6 @@ class ManipulacionCompras:
             producto = self.inventario.productos[id_producto]
             subtotal = cantidad * precio
 
-
             id_detalle = self.generar_id_detalle()
             detalle = DetallesCompras(id_detalle, id_compra, id_producto, cantidad, precio, subtotal)
             compra.agregar_detalle(detalle)
