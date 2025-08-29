@@ -23,7 +23,7 @@ class ManipulacionCategorias:
                 for linea in archivo:
                     linea = linea.strip()
                     if linea:
-                        id_categoria,nombre = linea.split(":")
+                        id_categoria, nombre = linea.split(":")
                         id_categoria = int(id_categoria)
                         self.categoria[id_categoria] = Categorias(id_categoria, nombre)
             print("categoria importados desde categorias.txt")
@@ -37,8 +37,14 @@ class ManipulacionCategorias:
 
     def agregar_categoria(self):
         try:
-            idc = int(input("Ingrese el ID de la categoría: "))
-            nombre = input("Ingrese el nombre de la categoría: ")
+            try:
+                idc = int(input("Ingrese el ID de la categoría: "))
+            except ValueError:
+                print("Error: El ID debe ser un número entero.")
+                return
+            nombre = input("Ingrese el nombre de la categoría: ").strip()
+            if not nombre:
+                raise ValueError("El nombre de la categoría no puede quedar vacío.")
             if idc in self.categoria:
                 raise CodigoDuplicadoError(f"Ya existe una categoría con ID {idc}")
             else:
@@ -47,6 +53,8 @@ class ManipulacionCategorias:
                 print(f"Categoría '{nombre}' agregada correctamente con ID {idc}.")
         except ValueError:
             print("Error: El ID debe ser un número entero.")
+        except CodigoDuplicadoError as e:
+            print(f"Error de duplicado: {e}")
 
     def mostrar_categorias(self):
         if not self.categoria:
@@ -73,7 +81,7 @@ class ManipulacionCategorias:
 
 
 class Productos:
-    def __init__(self,id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
+    def __init__(self, id_producto, nombre, id_categoria, precio, stock, fecha_caducidad=None):
         if not nombre.strip():
             raise ValueError("El nombre no puede quedar vacío.")
         if precio < 0:
@@ -221,7 +229,7 @@ class ManipulacionClientes:
                 for linea in archivo:
                     linea = linea.strip()
                     if linea:
-                        nit, nombre,telefono, direccion , correo = linea.split(":")
+                        nit, nombre, telefono, direccion, correo = linea.split(":")
                         self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
             print("Clientes importados desde clientes.txt")
         except FileNotFoundError:
@@ -233,16 +241,22 @@ class ManipulacionClientes:
                 archivo.write(f"{nit}:{datos.nombre}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
 
     def agregar_cliente(self):
-        nit = input("Ingrese el NIT del cliente: ")
-        nombre = input("Ingrese el nombre del cliente: ")
-        telefono = int(input("Ingrese el teléfono del cliente: "))
-        direccion = input("Ingrese la dirección del cliente: ")
-        correo = input("Ingrese el correo del cliente: ")
-        if nit in self.clientes:
-            raise CodigoDuplicadoError("El cliente con este NIT ya existe.")
-        self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
-        self.guardar_clientes()
-        print(f"Cliente con NIT {nit} agregado y guardado correctamente.")
+        try:
+            nit = input("Ingrese el NIT del cliente: ")
+            nombre = input("Ingrese el nombre del cliente: ").strip()
+            telefono = int(input("Ingrese el teléfono del cliente: "))
+            direccion = input("Ingrese la dirección del cliente: ")
+            correo = input("Ingrese el correo del cliente: ")
+            if nit in self.clientes:
+                raise CodigoDuplicadoError("El cliente con este NIT ya existe.")
+            self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
+            self.guardar_clientes()
+            print(f"Cliente con NIT {nit} agregado correctamente.")
+
+        except ValueError:
+            print("Error: El teléfono debe ser un número entero.")
+        except CodigoDuplicadoError as e:
+            print(f"Error de duplicado: {e}")
 
     def mostrar_todos(self):
         if self.clientes:
@@ -284,8 +298,9 @@ class ManipulacionEmpleados:
                 for linea in archivo:
                     linea = linea.strip()
                     if linea:
-                        id_empleado,nombre,telefono,direccion,correo = linea.split(":")
-                        self.empleados[id_empleado] = Empleados(id_empleado,nombre,telefono,direccion,correo)
+                        id_empleado, nombre, telefono, direccion, correo = linea.split(":")
+                        id_empleado = int(id_empleado)
+                        self.empleados[id_empleado] = Empleados(id_empleado, nombre, telefono, direccion, correo)
             print("Empleados importados desde Empleados.txt")
         except FileNotFoundError:
             print("No existe el archivo Empleados.txt, se creará uno nuevo al guardar.")
@@ -296,16 +311,21 @@ class ManipulacionEmpleados:
                 archivo.write(f"{id_empleado}:{datos.nombre}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
 
     def agregar_empleado(self):
-        ide = int(input("Ingrese el ID del empleado: "))
-        nombre = input("Ingrese el nombre del empleado: ")
-        telefono = int(input("Ingrese el teléfono del empleado: "))
-        direccion = input("Ingrese la dirección del empleado: ")
-        correo = input("Ingrese el correo del empleado: ")
-        if ide in self.empleados:
-            raise CodigoDuplicadoError("El empleado con este ID ya existe.")
-        self.empleados[ide] = Empleados(ide, nombre, telefono, direccion, correo)
-        self.guardar_empleados()
-        print("Empleado agregado exitosamente.")
+        try:
+            ide = int(input("Ingrese el ID del empleado: "))
+            nombre = input("Ingrese el nombre del empleado: ").strip()
+            telefono = int(input("Ingrese el teléfono del empleado: "))
+            direccion = input("Ingrese la dirección del empleado: ")
+            correo = input("Ingrese el correo del empleado: ")
+            if ide in self.empleados:
+                raise CodigoDuplicadoError("El empleado con este ID ya existe.")
+            self.empleados[ide] = Empleados(ide, nombre, telefono, direccion, correo)
+            self.guardar_empleados()
+            print("Empleado agregado exitosamente.")
+        except ValueError:
+            print("Error: El ID y teléfono deben ser números enteros.")
+        except CodigoDuplicadoError as e:
+            print(f"Error: {e}")
 
     def eliminar_empleado(self, ide):
         if ide not in self.empleados:
@@ -343,8 +363,10 @@ class ManipulacionProveedores:
                 for linea in archivo:
                     linea = linea.strip()
                     if linea:
-                        id_proveedor,nombre,empresa,nit,telefono,direccion,correo = linea.split(":")
-                        self.proveedores[id_proveedor] = Proveedores(id_proveedor,nombre,empresa,nit,telefono,direccion,correo)
+                        id_proveedor, nombre, empresa, nit, telefono, direccion, correo = linea.split(":")
+                        id_proveedor = int(id_proveedor)
+                        self.proveedores[id_proveedor] = Proveedores(id_proveedor, nombre, empresa, nit, telefono,
+                                                                     direccion, correo)
             print("Proveedores importados desde Proveedores.txt")
         except FileNotFoundError:
             print("No existe el archivo Proveedores.txt, se creará uno nuevo al guardar.")
@@ -352,14 +374,23 @@ class ManipulacionProveedores:
     def guardar_proveedores(self):
         with open("Proveedores.txt", "w", encoding="utf-8") as archivo:
             for id_proveedor, datos in self.proveedores.items():
-                archivo.write(f"{id_proveedor}:{datos.nombre}:{datos.empresa}:{datos.nit}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
+                archivo.write(
+                    f"{id_proveedor}:{datos.nombre}:{datos.empresa}:{datos.nit}:{datos.telefono}:{datos.direccion}:{datos.correo}\n")
 
     def agregar_proveedor(self):
-        id_proveedor = int(input("Ingrese el ID del proveedor: "))
-        nombre = input("Ingrese el nombre del proveedor: ")
-        empresa = input("Ingrese la empresa del proveedor: ")
+        try:
+            id_proveedor = int(input("Ingrese el ID del proveedor: "))
+        except ValueError:
+            print("Error: El ID debe ser un número entero.")
+            return
+        nombre = input("Ingrese el nombre del proveedor: ").strip()
+        empresa = input("Ingrese la empresa del proveedor: ").strip()
         nit = input("Ingrese el NIT del proveedor: ")
-        telefono = int(input("Ingrese el teléfono del proveedor: "))
+        try:
+            telefono = int(input("Ingrese el teléfono del proveedor: "))
+        except ValueError:
+            print("Error: El ID debe ser un número entero.")
+            return
         direccion = input("Ingrese la dirección del proveedor: ")
         correo = input("Ingrese el correo del proveedor: ")
         if id_proveedor in self.proveedores:
@@ -395,6 +426,7 @@ class Ventas:
         self.detalles.append(detalle)
         self.total += detalle.subtotal
 
+
 class DetallesVentas:
     def __init__(self, id_detalle, id_venta, id_producto, cantidad, precio, subtotal):
         self.id_detalle = id_detalle
@@ -422,6 +454,7 @@ class DetallesVentas:
         self.precio = nuevo_precio
         self.calcular_subtotal()
 
+
 class ManipulacionVentas:
     def __init__(self, inventario: ManipulacionInventario):
         self.inventario = inventario
@@ -448,7 +481,8 @@ class ManipulacionVentas:
     def guardar_detalles(self):
         with open("detalles_ventas.txt", "w", encoding="utf-8") as archivo:
             for id_detalle, detalle in self.detalles_ventas.items():
-                archivo.write(f"{detalle.id_detalle}:{detalle.id_venta}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio}:{detalle.subtotal}\n")
+                archivo.write(
+                    f"{detalle.id_detalle}:{detalle.id_venta}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio}:{detalle.subtotal}\n")
 
     def cargar_ventas(self):
         try:
@@ -539,45 +573,20 @@ class ManipulacionVentas:
         for det in ventas_filtradas:
             print(det.mostrar_detalle())
 
-
-class Compras:
-    def __init__(self, id_compra, fecha, id_proveedor, id_empleado):
-        self.id_compra = id_compra
-        self.fecha = fecha
-        self.id_proveedor = id_proveedor
-        self.id_empleado = id_empleado
-        self.detalles = []
-        self.total = 0
-
-    def agregar_detalle(self, detalle):
-        self.detalles.append(detalle)
-        id_producto, cantidad, precio_unitario = detalle
-        self.total += cantidad * precio_unitario
-
-    def mostrar_compra(self):
-        print(f"ID Compra: {self.id_compra}")
-        print(f"Fecha: {self.fecha}")
-        print(f"ID Proveedor: {self.id_proveedor}")
-        print(f"ID Empleado: {self.id_empleado}")
-        print("Detalles:")
-        for d in self.detalles:
-            print(f"  ID Producto: {d[0]}, Cantidad: {d[1]}, Precio: {d[2]}, Subtotal: {d[1] * d[2]}")
-        print(f"Total: {self.total}")
-
 class DetallesCompras:
-    def __init__(self, id_detalle, id_compra, id_producto, cantidad, precio_compra, subtotal):
+    def __init__(self, id_detalle, id_compra, id_producto, cantidad, precio_unitario, subtotal):
         self.id_detalle = id_detalle
         self.id_compra = id_compra
         self.id_producto = id_producto
         self.cantidad = cantidad
-        self.precio_compra = precio_compra
+        self.precio_unitario = precio_unitario
         self.subtotal = subtotal
 
     def calcular_subtotal(self):
-        self.subtotal = self.cantidad * self.precio_compra
+        self.subtotal = self.cantidad * self.precio_unitario
 
     def mostrar_detalle(self):
-        return f"Detalle {self.id_detalle}: Producto {self.id_producto} | Cant: {self.cantidad} | Precio compra: Q{self.precio_compra:.2f} | Subtotal: Q{self.subtotal:.2f}"
+        return f"Detalle {self.id_detalle}: Producto {self.id_producto} | Cant: {self.cantidad} | Precio compra: Q{self.precio_unitario:.2f} | Subtotal: Q{self.subtotal:.2f}"
 
     def actualizar_cantidad(self, nueva_cantidad):
         if nueva_cantidad <= 0:
@@ -588,8 +597,30 @@ class DetallesCompras:
     def actualizar_precio(self, nuevo_precio):
         if nuevo_precio < 0:
             raise ValueError("El precio no puede ser negativo.")
-        self.precio_compra = nuevo_precio
+        self.precio_unitario= nuevo_precio
         self.calcular_subtotal()
+
+class Compras:
+    def __init__(self, id_compra, fecha, id_proveedor, id_empleado):
+        self.id_compra = id_compra
+        self.fecha = fecha
+        self.id_proveedor = id_proveedor
+        self.id_empleado = id_empleado
+        self.detalles = []
+        self.total = 0
+
+    def agregar_detalle(self, detalle: DetallesCompras):
+        self.detalles.append(detalle)
+        self.total += detalle.subtotal
+
+    def mostrar_compra(self):
+        print(f"ID Compra: {self.id_compra}")
+        print(f"Fecha: {self.fecha}")
+        print(f"ID Proveedor: {self.id_proveedor}")
+        print(f"ID Empleado: {self.id_empleado}")
+        print("Detalles:")
+        for d in self.detalles:
+            print(f"ID Producto: {d.id_producto}, Cantidad: {d.cantidad}, Precio: {d.precio_unitario}, Subtotal: {d.subtotal}")
 
 class ManipulacionCompras:
     def __init__(self, inventario: ManipulacionInventario):
@@ -612,12 +643,14 @@ class ManipulacionCompras:
     def guardar_compras(self):
         with open("compras.txt", "w", encoding="utf-8") as archivo:
             for id_compra, compra in self.compras.items():
-                archivo.write(f"{compra.id_compra}:{compra.fecha}:{compra.id_proveedor}:{compra.id_empleado}:{compra.total}\n")
+                archivo.write(
+                    f"{compra.id_compra}:{compra.fecha}:{compra.id_proveedor}:{compra.id_empleado}:{compra.total}\n")
 
     def guardar_detalles(self):
         with open("detalles_compras.txt", "w", encoding="utf-8") as archivo:
             for id_detalle, detalle in self.detalles_compras.items():
-                archivo.write(f"{detalle.id_detalle}:{detalle.id_compra}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio_compra}:{detalle.subtotal}\n")
+                archivo.write(
+                    f"{detalle.id_detalle}:{detalle.id_compra}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio_unitario}:{detalle.subtotal}\n")
 
     def cargar_compras(self):
         try:
@@ -681,15 +714,16 @@ class ManipulacionCompras:
             producto = self.inventario.productos[id_producto]
             subtotal = cantidad * precio
 
+
             id_detalle = self.generar_id_detalle()
             detalle = DetallesCompras(id_detalle, id_compra, id_producto, cantidad, precio, subtotal)
             compra.agregar_detalle(detalle)
             self.detalles_compras[id_detalle] = detalle
-
             producto.stock += cantidad
 
         self.compras[id_compra] = compra
         print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
+
 
 class Buscar:
     def buscar_valor(self, lista, criterio, valor):
@@ -804,7 +838,7 @@ while opcion != 21:
             entrada_stock = input("Nuevo stock (deje vacío para no cambiar): ")
             nuevo_stock = int(entrada_stock) if entrada_stock.strip() else None
             try:
-                manipulacion_inventario.actualizar_producto(idp, nuevo_precio,nuevo_stock )
+                manipulacion_inventario.actualizar_producto(idp, nuevo_precio, nuevo_stock)
                 print("Producto actualizado correctamente.")
             except Exception as e:
                 print(f"Error: {e}")
@@ -821,10 +855,7 @@ while opcion != 21:
                 print("No se encontraron resultados.")
 
         case 5:
-            try:
                 manipulacion_categorias.agregar_categoria()
-            except CodigoDuplicadoError as e:
-                print(f"Error: {e}")
 
         case 6:
             if not manipulacion_categorias.categoria:
@@ -878,11 +909,25 @@ while opcion != 21:
             manipulacion_clientes.mostrar_clientes()
 
         case 16:
-            codigo = int(input("Ingrese el código del producto: "))
-            cantidad = int(input("Ingrese la cantidad: "))
             try:
+                codigo = int(input("Ingrese el código del producto: "))
+                cantidad = int(input("Ingrese la cantidad: "))
+
+                if cantidad <= 0:
+                    raise ValueError("La cantidad debe ser mayor que 0.")
+                if codigo not in manipulacion_inventario.productos:
+                    raise RegistroNoExisteError("No se encontró el producto.")
+
+                producto = manipulacion_inventario.productos[codigo]
+                if producto.stock < cantidad:
+                    raise ValueError(f"Stock insuficiente. Disponible: {producto.stock}")
+
                 manipulacion_ventas.vender(codigo, cantidad)
-            except Exception as e:
+                print("Venta registrada correctamente.")
+
+            except ValueError as a:
+                print(f"Error de valor: {a}")
+            except RegistroNoExisteError as e:
                 print(f"Error: {e}")
 
         case 17:
