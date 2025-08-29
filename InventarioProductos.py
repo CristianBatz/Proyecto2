@@ -113,6 +113,7 @@ class ManipulacionInventario:
     def __init__(self):
         self.productos = {}
         self.contador_id = 1
+        self.cargar_productos()
 
     def generar_id(self):
         nuevo_id = self.contador_id
@@ -149,8 +150,7 @@ class ManipulacionInventario:
         with open("productos.txt", "w", encoding="utf-8") as archivo:
             for id_producto, datos in self.productos.items():
                 fecha = datos.fecha_caducidad if datos.fecha_caducidad else ""
-                archivo.write(
-                    f"{id_producto}:{datos.nombre}:{datos.id_categoria}:{datos.precio}:{datos.stock}:{fecha}\n")
+                archivo.write(f"{id_producto}:{datos.nombre}:{datos.id_categoria}:{datos.precio}:{datos.stock}:{fecha}\n")
 
     def agregar_varios_productos(self, manipulacion_categorias):
         if not manipulacion_categorias.categoria:
@@ -191,6 +191,7 @@ class ManipulacionInventario:
                 id_producto = self.generar_id()
                 nuevo_producto = Productos(id_producto, nombre, id_categoria, precio, stock, fecha)
                 self.productos[id_producto] = nuevo_producto
+                self.guardar_productos()
                 print(f"Producto '{nombre}' agregado correctamente con ID {id_producto}.")
             except ValueError:
                 print("Error: Uno de los valores ingresados no tiene el formato correcto.")
@@ -462,6 +463,8 @@ class ManipulacionVentas:
         self.detalles_ventas = {}
         self.contador_venta = 1
         self.contador_detalle = 1
+        self.cargar_detalles()
+        self.cargar_ventas()
 
     def generar_id_venta(self):
         id_v = self.contador_venta
@@ -481,8 +484,7 @@ class ManipulacionVentas:
     def guardar_detalles(self):
         with open("detalles_ventas.txt", "w", encoding="utf-8") as archivo:
             for id_detalle, detalle in self.detalles_ventas.items():
-                archivo.write(
-                    f"{detalle.id_detalle}:{detalle.id_venta}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio}:{detalle.subtotal}\n")
+                archivo.write(f"{detalle.id_detalle}:{detalle.id_venta}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio}:{detalle.subtotal}\n")
 
     def cargar_ventas(self):
         try:
@@ -544,7 +546,8 @@ class ManipulacionVentas:
         subtotal = cantidad * producto.precio
         detalle = DetallesVentas(id_detalle, id_venta, id_producto, cantidad, producto.precio, subtotal)
         venta.agregar_detalle(detalle)
-
+        self.guardar_detalles()
+        self.guardar_ventas()
         self.ventas[id_venta] = venta
         self.detalles_ventas[id_detalle] = detalle
         print(f"Venta registrada correctamente. Total: Q{subtotal:.2f}")
@@ -629,6 +632,8 @@ class ManipulacionCompras:
         self.detalles_compras = {}
         self.contador_compra = 1
         self.contador_detalle = 1
+        self.cargar_detalles()
+        self.cargar_compras()
 
     def generar_id_compra(self):
         id_c = self.contador_compra
@@ -720,7 +725,8 @@ class ManipulacionCompras:
             compra.agregar_detalle(detalle)
             self.detalles_compras[id_detalle] = detalle
             producto.stock += cantidad
-
+        self.guardar_detalles()
+        self.guardar_compras()
         self.compras[id_compra] = compra
         print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
 
