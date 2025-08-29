@@ -550,7 +550,7 @@ class ManipulacionVentas:
         self.guardar_ventas()
         self.ventas[id_venta] = venta
         self.detalles_ventas[id_detalle] = detalle
-        print(f"Venta registrada correctamente. Total: Q{subtotal:.2f}")
+        print(f"Total: Q{subtotal:.2f}")
 
     def mostrar_historial(self):
         if not self.ventas:
@@ -648,14 +648,12 @@ class ManipulacionCompras:
     def guardar_compras(self):
         with open("compras.txt", "w", encoding="utf-8") as archivo:
             for id_compra, compra in self.compras.items():
-                archivo.write(
-                    f"{compra.id_compra}:{compra.fecha}:{compra.id_proveedor}:{compra.id_empleado}:{compra.total}\n")
+                archivo.write(f"{compra.id_compra}:{compra.fecha}:{compra.id_proveedor}:{compra.id_empleado}:{compra.total}\n")
 
     def guardar_detalles(self):
         with open("detalles_compras.txt", "w", encoding="utf-8") as archivo:
             for id_detalle, detalle in self.detalles_compras.items():
-                archivo.write(
-                    f"{detalle.id_detalle}:{detalle.id_compra}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio_unitario}:{detalle.subtotal}\n")
+                archivo.write(f"{detalle.id_detalle}:{detalle.id_compra}:{detalle.id_producto}:{detalle.cantidad}:{detalle.precio_unitario}:{detalle.subtotal}\n")
 
     def cargar_compras(self):
         try:
