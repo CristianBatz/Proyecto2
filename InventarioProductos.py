@@ -492,7 +492,7 @@ class DetallesVentas:
 
 
 class ManipulacionVentas:
-    def __init__(self, inventario: ManipulacionInventario):
+    def __init__(self, inventario: ManipulacionInventario,clientes,usuarios):
         self.inventario = inventario
         self.ventas = {}
         self.detalles_ventas = {}
@@ -500,6 +500,8 @@ class ManipulacionVentas:
         self.contador_detalle = 1
         self.cargar_detalles()
         self.cargar_ventas()
+        self.clientes = clientes.clientes
+        self.usuarios = usuarios.usuarios
 
     def generar_id_venta(self):
         id_v = self.contador_venta
@@ -594,14 +596,14 @@ class ManipulacionVentas:
         id_detalle = self.generar_id_detalle()
         subtotal = cantidad * producto.precio
         detalle = DetallesVentas(id_detalle, id_venta, id_producto, cantidad, producto.precio, subtotal)
-
         venta.agregar_detalle(detalle)
+
         self.ventas[id_venta] = venta
         self.detalles_ventas[id_detalle] = detalle
         self.guardar_detalles()
         self.guardar_ventas()
 
-        print(f"Venta registrada por empleado ID: {id_empleado}, Cliente ID: {id_cliente}")
+        print(f"Venta registrada. Cliente ID: {id_cliente}, Empleado ID: {id_empleado}")
         print(f"Producto: {producto.nombre}, Cantidad: {cantidad}, Total: Q{subtotal:.2f}")
 
     def mostrar_historial(self):
@@ -826,17 +828,16 @@ class Ordenamiento:
 
         return self.quick_sort(menores, clave) + [pivote] + iguales + self.quick_sort(mayores, clave)
 
-
+sistema = SistemaUsuarios()
 manipulacion_inventario = ManipulacionInventario()
 manipulacion_categorias = ManipulacionCategorias()
 manipulacion_clientes = ManipulacionClientes()
 manipulacion_empleados = ManipulacionEmpleados()
 manipulacion_proveedores = ManipulacionProveedores()
-manipulacion_ventas = ManipulacionVentas(manipulacion_inventario)
+manipulacion_ventas = ManipulacionVentas(manipulacion_inventario,manipulacion_clientes,sistema)
 manipulacion_compras = ManipulacionCompras(manipulacion_inventario)
 buscador = Buscar()
 ordenamiento = Ordenamiento()
-sistema = SistemaUsuarios()
 
 usuario_actual = None
 intentos = 0
@@ -994,26 +995,32 @@ while True:
                     manipulacion_clientes.mostrar_clientes()
 
                 case 16:
+                    id_producto = int(input("Ingrese ID del producto: "))
+                    cantidad = int(input("Ingrese cantidad: "))
+
+                    id_cliente = input("Ingrese ID del cliente (opcional): ")
+                    if id_cliente == "":
+                        id_cliente = None
+                    else:
+                        id_cliente = int(id_cliente)
+
+                    id_empleado = input("Ingrese ID del empleado (opcional): ")
+                    if id_empleado == "":
+                        id_empleado = None
+                    else:
+                        id_empleado = int(id_empleado)
+
+                    fecha = input("Ingrese fecha (por defecto 'hoy'): ")
+                    if fecha == "":
+                        fecha = "hoy"
+
                     try:
-                        codigo = int(input("Ingrese el código del producto: "))
-                        cantidad = int(input("Ingrese la cantidad: "))
-
-                        if cantidad <= 0:
-                            raise ValueError("La cantidad debe ser mayor que 0.")
-                        if codigo not in manipulacion_inventario.productos:
-                            raise RegistroNoExisteError("No se encontró el producto.")
-
-                        producto = manipulacion_inventario.productos[codigo]
-                        if producto.stock < cantidad:
-                            raise ValueError(f"Stock insuficiente. Disponible: {producto.stock}")
-
-                        manipulacion_ventas.vender(codigo, cantidad)
-                        print("Venta registrada correctamente.")
-
-                    except ValueError as a:
-                        print(f"Error de valor: {a}")
+                        manipulacion_ventas.vender(id_producto, cantidad, id_cliente, id_empleado, fecha)
+                        print("Venta realizada con éxito.")
                     except RegistroNoExisteError as e:
-                        print(f"Error: {e}")
+                        print("Error:", e)
+                    except ValueError as e:
+                        print("Error:", e)
 
                 case 17:
                     manipulacion_ventas.mostrar_historial()
