@@ -18,28 +18,34 @@ class SistemaUsuarios:
 
     def cargar_usuarios(self):
         try:
-            with open("usuarios.txt", "r", encoding="utf-8") as f:
-                for linea in f:
-                    if linea.strip():
-                        nombre, password, rol = linea.strip().split(":")
+            with open("Usuarios.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        nombre, password, rol = linea.split(":")
                         self.usuarios[nombre] = Usuario(nombre, password, rol)
+            print("Usuarios importados desde Usuarios.txt")
         except FileNotFoundError:
-            print("No existe usuarios.txt, se creará uno nuevo al guardar.")
+            print("No existe el archivo Usuarios.txt, se creará uno nuevo al guardar.")
 
     def guardar_usuarios(self):
-        with open("usuarios.txt", "w", encoding="utf-8") as f:
-            for u in self.usuarios.values():
-                f.write(f"{u.nombre}:{u.password}:{u.rol}\n")
+        with open("Usuarios.txt", "w", encoding="utf-8") as archivo:
+            for nombre, datos in self.usuarios.items():
+                archivo.write(f"{datos.nombre}:{datos.password}:{datos.rol}\n")
 
-    def login(self):
-        nombre = input("Usuario: ")
-        password = input("Contraseña: ")
-        if nombre in self.usuarios and self.usuarios[nombre].password == password:
-            print(f"Bienvenido {nombre}, rol: {self.usuarios[nombre].rol}")
-            return self.usuarios[nombre]
-        else:
-            print("Usuario o contraseña incorrectos.")
-            return None
+    def registrar(self, nombre, password, rol):
+        if nombre in self.usuarios:
+            raise CodigoDuplicadoError("El usuario ya existe.")
+        self.usuarios[nombre] = Usuario(nombre, password, rol)
+        self.guardar_usuarios()
+
+    def login(self, nombre, password):
+        if nombre not in self.usuarios:
+            raise RegistroNoExisteError("El usuario no existe.")
+        usuario = self.usuarios[nombre]
+        if usuario.password != password:
+            raise ValueError("Contraseña incorrecta.")
+        return usuario
 
 class Categorias:
     def __init__(self, id_categoria, nombre):
@@ -108,6 +114,7 @@ class ManipulacionCategorias:
             if idc not in self.categoria:
                 raise RegistroNoExisteError("No se encontró la categoría.")
             del self.categoria[idc]
+            self.guardar_categoria()
             print("Categoría eliminada correctamente.")
         except ValueError:
             print("Error: El ID debe ser un número entero.")
@@ -367,6 +374,7 @@ class ManipulacionEmpleados:
         if ide not in self.empleados:
             raise RegistroNoExisteError("No se encontró el empleado.")
         del self.empleados[ide]
+        self.guardar_empleados()
         print("Empleado eliminado exitosamente.")
 
     def mostrar_empleados(self):
@@ -439,6 +447,7 @@ class ManipulacionProveedores:
         if id_proveedor not in self.proveedores:
             raise RegistroNoExisteError("No se encontró el proveedor.")
         del self.proveedores[id_proveedor]
+        self.guardar_proveedores()
         print("Proveedor eliminado exitosamente.")
 
     def mostrar_proveedores(self):
@@ -492,7 +501,7 @@ class DetallesVentas:
 
 
 class ManipulacionVentas:
-    def __init__(self, inventario: ManipulacionInventario,clientes,usuarios):
+    def __init__(self, inventario: ManipulacionInventario,clientes,empleados):
         self.inventario = inventario
         self.ventas = {}
         self.detalles_ventas = {}
@@ -501,7 +510,7 @@ class ManipulacionVentas:
         self.cargar_detalles()
         self.cargar_ventas()
         self.clientes = clientes.clientes
-        self.usuarios = usuarios.usuarios
+        self.empleados =empleados.empleados
 
     def generar_id_venta(self):
         id_v = self.contador_venta
@@ -586,7 +595,7 @@ class ManipulacionVentas:
 
         if id_empleado is None:
             id_empleado = int(input("Ingrese ID del empleado: "))
-        if id_empleado not in self.usuarios:
+        if id_empleado not in self.empleados:
             print("Empleado no válido. La venta se cancelará.")
             return
 
@@ -680,7 +689,7 @@ class Compras:
             print(f"ID Producto: {d.id_producto}, Cantidad: {d.cantidad}, Precio: {d.precio_unitario}, Subtotal: {d.subtotal}")
 
 class ManipulacionCompras:
-    def __init__(self, inventario: ManipulacionInventario):
+    def __init__(self, inventario: ManipulacionInventario,proveedores,empleados):
         self.inventario = inventario
         self.compras = {}
         self.detalles_compras = {}
@@ -688,6 +697,8 @@ class ManipulacionCompras:
         self.contador_detalle = 1
         self.cargar_detalles()
         self.cargar_compras()
+        self.proveedores = proveedores.proveedores
+        self.empleados = empleados.empleados
 
     def generar_id_compra(self):
         id_c = self.contador_compra
@@ -751,42 +762,75 @@ class ManipulacionCompras:
         except FileNotFoundError:
             print("No existe detalles_compras.txt, se creará al guardar.")
 
-    def registrar_compra(self):
+    def registrar_compra(self, manipulacion_proveedores, manipulacion_empleados, manipulacion_categorias):
         id_compra = self.generar_id_compra()
         fecha = input("Ingrese la fecha: ")
+
         id_proveedor = int(input("Ingrese el ID del proveedor: "))
         if id_proveedor not in manipulacion_proveedores.proveedores:
             print(f"Error: No existe un proveedor con ID {id_proveedor}")
             return
+
         id_empleado = int(input("Ingrese el ID del empleado que registró la compra: "))
         if id_empleado not in manipulacion_empleados.empleados:
             print(f"Error: No existe un empleado con ID {id_empleado}")
             return
+
         compra = Compras(id_compra, fecha, id_proveedor, id_empleado)
 
         while True:
             id_producto = int(input("Ingrese el ID del producto (o '0' para terminar): "))
             if id_producto == 0:
                 break
+
             if id_producto not in self.inventario.productos:
-                print(f"Error: El producto con ID {id_producto} no existe en inventario.")
-                continue
+                print("El producto no está registrado en inventario.")
+                opcion = input("¿Desea registrarlo ahora? (s/n): ").strip().lower()
+                if opcion == "s":
+                    nombre = input("Ingrese el nombre del producto: ").strip()
+
+                    if not manipulacion_categorias.categoria:
+                        print("No hay categorías registradas. Agregue primero una categoría.")
+                        continue
+
+                    print("Categorías disponibles:")
+                    for c in manipulacion_categorias.categoria.values():
+                        print(f"ID: {c.id_categoria} | Nombre: {c.nombre}")
+
+                    id_categoria = int(input("Ingrese el ID de la categoría del producto: "))
+                    if id_categoria not in manipulacion_categorias.categoria:
+                        print("La categoría no existe. Producto no registrado.")
+                        continue
+
+                    precio = float(input("Ingrese el precio de venta del producto: "))
+                    stock = 0
+                    fecha_caducidad = input("Ingrese la fecha de caducidad (opcional): ").strip()
+
+                    id_producto = self.inventario.generar_id()
+                    nuevo_producto = Productos(id_producto, nombre, id_categoria, precio, stock, fecha_caducidad)
+                    self.inventario.productos[id_producto] = nuevo_producto
+                    self.inventario.guardar_productos()
+                    print(f"Producto '{nombre}' agregado con ID {id_producto}.")
+                else:
+                    print("No se puede agregar este producto a la compra.")
+                    continue
 
             cantidad = int(input("Ingrese la cantidad: "))
-            precio = float(input("Ingrese el precio de compra: "))
+            precio_compra = float(input("Ingrese el precio de compra: "))
             producto = self.inventario.productos[id_producto]
-            subtotal = cantidad * precio
+            subtotal = cantidad * precio_compra
 
             id_detalle = self.generar_id_detalle()
-            detalle = DetallesCompras(id_detalle, id_compra, id_producto, cantidad, precio, subtotal)
+            detalle = DetallesCompras(id_detalle, id_compra, id_producto, cantidad, precio_compra, subtotal)
             compra.agregar_detalle(detalle)
             self.detalles_compras[id_detalle] = detalle
+
             producto.stock += cantidad
+
         self.compras[id_compra] = compra
         self.guardar_detalles()
         self.guardar_compras()
         print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
-
 
 class Buscar:
     def buscar_valor(self, lista, criterio, valor):
@@ -827,6 +871,41 @@ class Ordenamiento:
             raise ValueError("Criterio inválido.")
 
         return self.quick_sort(menores, clave) + [pivote] + iguales + self.quick_sort(mayores, clave)
+class Menu:
+    def menu_inicio(self,sistema):
+        while True:
+            print("\n--- SISTEMA DE ACCESO ---")
+            print("1. Iniciar sesión")
+            print("2. Registrarse")
+            print("3. Salir")
+            opcion = input("Seleccione una opción: ")
+
+            if opcion == "1":
+                nombre = input("Usuario: ")
+                password = input("Contraseña: ")
+                usuario = sistema.login(nombre, password)
+                if usuario:
+                    print(f"\nBienvenido {usuario.nombre} ({usuario.rol})")
+                    return usuario
+                else:
+                    print(" Usuario o contraseña incorrectos.")
+
+            elif opcion == "2":
+                nombre = input("Nuevo usuario: ")
+                password = input("Nueva contraseña: ")
+                print("Roles disponibles: Administrador, Empleado, Bodeguero")
+                rol = input("Rol: ")
+                try:
+                    sistema.registrar(nombre, password, rol)
+                    print(" Usuario registrado con éxito, ahora puede iniciar sesión.")
+                except CodigoDuplicadoError as e:
+                    print(e)
+
+            elif opcion == "3":
+                print("Saliendo del sistema...")
+                exit()
+            else:
+                print("Opción inválida. Intente de nuevo.")
 
 sistema = SistemaUsuarios()
 manipulacion_inventario = ManipulacionInventario()
@@ -834,15 +913,16 @@ manipulacion_categorias = ManipulacionCategorias()
 manipulacion_clientes = ManipulacionClientes()
 manipulacion_empleados = ManipulacionEmpleados()
 manipulacion_proveedores = ManipulacionProveedores()
-manipulacion_ventas = ManipulacionVentas(manipulacion_inventario,manipulacion_clientes,sistema)
-manipulacion_compras = ManipulacionCompras(manipulacion_inventario)
+manipulacion_ventas = ManipulacionVentas(manipulacion_inventario,manipulacion_clientes,manipulacion_empleados)
+manipulacion_compras = ManipulacionCompras(manipulacion_inventario,manipulacion_proveedores,manipulacion_empleados)
 buscador = Buscar()
 ordenamiento = Ordenamiento()
+menu = Menu()
 
 usuario_actual = None
 intentos = 0
 while intentos < 3 and usuario_actual is None:
-    usuario_actual = sistema.login()
+    usuario_actual = menu.menu_inicio(sistema)
     if usuario_actual is None:
         intentos += 1
 
@@ -852,7 +932,6 @@ if usuario_actual is None:
 
 opcion = 0
 while True:
-    print("\n=== SISTEMA DE GESTIÓN DE SUPERMERCADO ===")
     print(f"\n=== MENÚ PRINCIPAL ({usuario_actual.rol}) ===")
 
     match usuario_actual.rol:
@@ -1030,7 +1109,7 @@ while True:
                     manipulacion_ventas.filtrar_por_codigo(codigo)
 
                 case 19:
-                    manipulacion_compras.registrar_compra()
+                    manipulacion_compras.registrar_compra(manipulacion_proveedores, manipulacion_empleados, manipulacion_categorias)
 
                 case 20:
                     for detalle in manipulacion_compras.detalles_compras.values():
@@ -1038,32 +1117,39 @@ while True:
 
                 case 21:
                     print("Saliendo del sistema")
+                    break
 
                 case _:
                     print(" Opción inválida.")
         case "Empleado":
             match int(opcion):
                 case 1:
+                    id_producto = int(input("Ingrese ID del producto: "))
+                    cantidad = int(input("Ingrese cantidad: "))
+
+                    id_cliente = input("Ingrese ID del cliente (opcional): ")
+                    if id_cliente == "":
+                        id_cliente = None
+                    else:
+                        id_cliente = int(id_cliente)
+
+                    id_empleado = input("Ingrese ID del empleado (opcional): ")
+                    if id_empleado == "":
+                        id_empleado = None
+                    else:
+                        id_empleado = int(id_empleado)
+
+                    fecha = input("Ingrese fecha (por defecto 'hoy'): ")
+                    if fecha == "":
+                        fecha = "hoy"
+
                     try:
-                        codigo = int(input("Ingrese el código del producto: "))
-                        cantidad = int(input("Ingrese la cantidad: "))
-
-                        if cantidad <= 0:
-                            raise ValueError("La cantidad debe ser mayor que 0.")
-                        if codigo not in manipulacion_inventario.productos:
-                            raise RegistroNoExisteError("No se encontró el producto.")
-
-                        producto = manipulacion_inventario.productos[codigo]
-                        if producto.stock < cantidad:
-                            raise ValueError(f"Stock insuficiente. Disponible: {producto.stock}")
-
-                        manipulacion_ventas.vender(codigo, cantidad)
-                        print("Venta registrada correctamente.")
-
-                    except ValueError as a:
-                        print(f"Error de valor: {a}")
+                        manipulacion_ventas.vender(id_producto, cantidad, id_cliente, id_empleado, fecha)
+                        print("Venta realizada con éxito.")
                     except RegistroNoExisteError as e:
-                        print(f"Error: {e}")
+                        print("Error:", e)
+                    except ValueError as e:
+                        print("Error:", e)
 
                 case 2:
                     manipulacion_ventas.mostrar_historial()
@@ -1071,12 +1157,17 @@ while True:
                 case 3:
                     codigo = input("Ingrese el código del producto: ")
                     manipulacion_ventas.filtrar_por_codigo(codigo)
+
+                case 4:
+                    print("Saliendo del sistema")
+                    break
+
                 case _:
                     print(" Opción inválida.")
         case "Bodeguero":
             match int(opcion):
                 case 1:
-                    manipulacion_compras.registrar_compra()
+                    manipulacion_compras.registrar_compra(manipulacion_proveedores, manipulacion_empleados, manipulacion_categorias)
 
                 case 2:
                     for detalle in manipulacion_compras.detalles_compras.values():
