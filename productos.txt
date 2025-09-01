@@ -1,3 +1,2 @@
-1:comida enlatada:1:15.0:15:15 de agosto 2026
+1:comida enlatada:1:15.0:0:15 de agosto 2026
 2:comida de perro:1:15.0:15:15 de agosto de 2026
-

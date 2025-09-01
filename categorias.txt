@@ -1,3 +1,2 @@
 1:comida
 2:ropa
-3:electrodomesticos

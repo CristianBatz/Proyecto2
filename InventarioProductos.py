@@ -273,6 +273,8 @@ class ManipulacionClientes:
                     linea = linea.strip()
                     if linea:
                         nit, nombre, telefono, direccion, correo = linea.split(":")
+                        nit = int(nit)
+                        telefono = int(telefono)
                         self.clientes[nit] = Clientes(nit, nombre, telefono, direccion, correo)
             print("Clientes importados desde clientes.txt")
         except FileNotFoundError:
@@ -585,8 +587,6 @@ class ManipulacionVentas:
         if producto.stock < cantidad:
             raise ValueError(f"Stock insuficiente. Disponible: {producto.stock}")
 
-        producto.stock -= cantidad
-
         if id_cliente is None:
             id_cliente = int(input("Ingrese el NIT del cliente: "))
         if id_cliente not in self.clientes:
@@ -598,7 +598,8 @@ class ManipulacionVentas:
         if id_empleado not in self.empleados:
             print("Empleado no válido. La venta se cancelará.")
             return
-
+        producto.stock -= cantidad
+        self.inventario.guardar_productos()
         id_venta = self.generar_id_venta()
         venta = Ventas(id_venta, fecha, id_cliente, id_empleado)
 
@@ -871,8 +872,9 @@ class Ordenamiento:
             raise ValueError("Criterio inválido.")
 
         return self.quick_sort(menores, clave) + [pivote] + iguales + self.quick_sort(mayores, clave)
+
 class Menu:
-    def menu_inicio(self,sistema):
+    def menu_inicio(self, sistema):
         while True:
             print("\n--- SISTEMA DE ACCESO ---")
             print("1. Iniciar sesión")
@@ -883,12 +885,14 @@ class Menu:
             if opcion == "1":
                 nombre = input("Usuario: ")
                 password = input("Contraseña: ")
-                usuario = sistema.login(nombre, password)
-                if usuario:
+                try:
+                    usuario = sistema.login(nombre, password)
                     print(f"\nBienvenido {usuario.nombre} ({usuario.rol})")
                     return usuario
-                else:
-                    print(" Usuario o contraseña incorrectos.")
+                except RegistroNoExisteError as e:
+                    print("Error:", e)
+                except ValueError as e:
+                    print("Error:", e)
 
             elif opcion == "2":
                 nombre = input("Nuevo usuario: ")
@@ -897,9 +901,9 @@ class Menu:
                 rol = input("Rol: ")
                 try:
                     sistema.registrar(nombre, password, rol)
-                    print(" Usuario registrado con éxito, ahora puede iniciar sesión.")
+                    print("Usuario registrado con éxito, ahora puede iniciar sesión.")
                 except CodigoDuplicadoError as e:
-                    print(e)
+                    print("Error:", e)
 
             elif opcion == "3":
                 print("Saliendo del sistema...")
@@ -982,24 +986,32 @@ while True:
         case "Administrador":
             match int(opcion):
                 case 1:
+                    print("=== Agregar productos ===")
                     manipulacion_inventario.agregar_varios_productos(manipulacion_categorias)
 
                 case 2:
+                    print("=== Registro de inventario ===")
                     lista = manipulacion_inventario.obtener_lista()
                     if not lista:
                         print("No hay productos registrados.")
                     else:
                         for p in lista:
                             print(p)
-                        criterio = input("Ingrese el criterio a ordenar(id,nombre,precio): ")
-                        try:
-                            lista_ordenada = ordenamiento.quick_sort(lista, criterio)
-                            for p1 in lista_ordenada:
-                                print(p1)
-                        except ValueError as e:
-                            print(f"Error: {e}")
+                        confirmacion = input("Desea ordenar el registro(si/no): ")
+                        if confirmacion == "si".lower():
+                            criterio = input("Ingrese el criterio a ordenar(id,nombre,precio): ")
+                            try:
+                                lista_ordenada = ordenamiento.quick_sort(lista, criterio)
+                                for p1 in lista_ordenada:
+                                    print(p1)
+                            except ValueError as e:
+                                print(f"Error: {e}")
+                        elif confirmacion == "no".lower():
+                            print("=== Saliendo del registro ===")
+
 
                 case 3:
+                    print("=== Actualizacion del producto ===")
                     idp = int(input("Ingrese el ID del producto a actualizar: "))
                     entrada_precio = input("Nuevo precio (deje vacío para no cambiar): ")
                     nuevo_precio = float(entrada_precio) if entrada_precio.strip() else None
@@ -1013,6 +1025,7 @@ while True:
                         print(f"Error: {e}")
 
                 case 4:
+                    print("=== Buscar productos ===")
                     criterio = input("Buscar por (id_producto/nombre/categoria): ")
                     valor = input("Valor a buscar: ")
                     lista = manipulacion_inventario.obtener_lista()
@@ -1024,9 +1037,11 @@ while True:
                         print("No se encontraron resultados.")
 
                 case 5:
+                    print("=== Agregar categorias ===")
                     manipulacion_categorias.agregar_categoria()
 
                 case 6:
+                    print("=== Registro de categorias ===")
                     if not manipulacion_categorias.categoria:
                         print("No hay categorías registradas.")
                     else:
@@ -1034,18 +1049,22 @@ while True:
                             print(f"ID: {c.id_categoria} | Nombre: {c.nombre}")
 
                 case 7:
+                    print("=== Eliminar categorias ===")
                     manipulacion_categorias.eliminar_categoria()
 
                 case 8:
+                    print("=== Agregar empleado ===")
                     try:
                         manipulacion_empleados.agregar_empleado()
                     except Exception as e:
                         print(f"Error: {e}")
 
                 case 9:
+                    print("=== Registro de empleados ===")
                     manipulacion_empleados.mostrar_empleados()
 
                 case 10:
+                    print("=== Eliminar empleados ===")
                     ide = int(input("Ingrese el ID del empleado a eliminar: "))
                     try:
                         manipulacion_empleados.eliminar_empleado(ide)
@@ -1053,15 +1072,18 @@ while True:
                         print(f"Error: {e}")
 
                 case 11:
+                    print("=== Agregar proveedores ===")
                     try:
                         manipulacion_proveedores.agregar_proveedor()
                     except Exception as e:
                         print(f"Error: {e}")
 
                 case 12:
+                    print("=== Registro de  proveedores ===")
                     manipulacion_proveedores.mostrar_proveedores()
 
                 case 13:
+                    print("=== Eliminar proveedores ===")
                     idp = int(input("Ingrese el ID del proveedor a eliminar: "))
                     try:
                         manipulacion_proveedores.eliminar_proveedor(idp)
@@ -1069,15 +1091,18 @@ while True:
                         print(f"Error: {e}")
 
                 case 14:
+                    print("=== Agregar clientes ===")
                     try:
                         manipulacion_clientes.agregar_cliente()
                     except Exception as e:
                         print(f"Error: {e}")
 
                 case 15:
+                    print("=== Registro de clientes ===")
                     manipulacion_clientes.mostrar_clientes()
 
                 case 16:
+                    print("=== Ventas ===")
                     id_producto = int(input("Ingrese ID del producto: "))
                     cantidad = int(input("Ingrese cantidad: "))
 
@@ -1106,25 +1131,29 @@ while True:
                         print("Error:", e)
 
                 case 17:
+                    print("=== Registro de ventas ===")
                     manipulacion_ventas.mostrar_historial()
 
                 case 18:
+                    print("===Buscar ventas ===")
                     codigo = input("Ingrese el código del producto: ")
                     manipulacion_ventas.filtrar_por_codigo(codigo)
 
                 case 19:
+                    print("=== Compras ===")
                     manipulacion_compras.registrar_compra(manipulacion_proveedores, manipulacion_empleados, manipulacion_categorias)
 
                 case 20:
+                    print("=== Registro de compras ===")
                     for detalle in manipulacion_compras.detalles_compras.values():
                         print(detalle.mostrar_detalle())
 
                 case 21:
-                    print("Saliendo al menu de usuario")
+                    print("=== Saliendo al menu de usuario ===")
                     menu.menu_inicio(sistema)
 
                 case 22:
-                    print("Saliendo del programa")
+                    print(" === Saliendo del programa ===")
                     break
 
                 case _:
@@ -1132,6 +1161,7 @@ while True:
         case "Empleado":
             match int(opcion):
                 case 1:
+                    print("=== Ventas ===")
                     id_producto = int(input("Ingrese ID del producto: "))
                     cantidad = int(input("Ingrese cantidad: "))
 
@@ -1160,18 +1190,20 @@ while True:
                         print("Error:", e)
 
                 case 2:
+                    print("=== Registro de ventas ===")
                     manipulacion_ventas.mostrar_historial()
 
                 case 3:
+                    print("===Buscar ventas ===")
                     codigo = input("Ingrese el código del producto: ")
                     manipulacion_ventas.filtrar_por_codigo(codigo)
 
                 case 4:
-                    print("Saliendo al menu de usuario")
+                    print("=== Saliendo al menu de usuario ===")
                     menu.menu_inicio(sistema)
 
                 case 5:
-                    print("Saliendo del sistema")
+                    print("=== Saliendo del sistema ===")
                     break
 
                 case _:
@@ -1179,9 +1211,11 @@ while True:
         case "Bodeguero":
             match int(opcion):
                 case 1:
+                    print("=== Compras ===")
                     manipulacion_compras.registrar_compra(manipulacion_proveedores, manipulacion_empleados, manipulacion_categorias)
 
                 case 2:
+                    print("=== Registro de compras ===")
                     for detalle in manipulacion_compras.detalles_compras.values():
                         print(detalle.mostrar_detalle())
 
