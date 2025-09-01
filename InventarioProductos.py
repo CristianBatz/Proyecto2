@@ -1171,7 +1171,7 @@ while True:
                     else:
                         id_cliente = int(id_cliente)
 
-                    id_empleado = input("Ingrese ID del empleado (opcional): ")
+                    id_empleado = input("Ingrese ID del empleado: ")
                     if id_empleado == "":
                         id_empleado = None
                     else:
