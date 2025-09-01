@@ -1150,6 +1150,7 @@ while True:
 
                 case 21:
                     print("=== Saliendo al menu de usuario ===")
+                    usuario_actual = None
                     menu.menu_inicio(sistema)
 
                 case 22:
@@ -1200,6 +1201,7 @@ while True:
 
                 case 4:
                     print("=== Saliendo al menu de usuario ===")
+                    usuario_actual = None
                     menu.menu_inicio(sistema)
 
                 case 5:
@@ -1221,6 +1223,7 @@ while True:
 
                 case 3:
                     print("Saliendo al menu de usuario")
+                    usuario_actual = None
                     menu.menu_inicio(sistema)
 
                 case 4:

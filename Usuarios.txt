@@ -1,2 +1,3 @@
 ghost:1234:Empleado
 ghostac:12345:Administrador
+ghost1:123456:empleado
