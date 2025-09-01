@@ -956,17 +956,21 @@ while True:
             print("18. Filtrar ventas por producto")
             print("19. Registrar compra")
             print("20. Mostrar historial de compras")
-            print("21. Salir")
+            print("21. Cerrar sesion")
+            print("22. Salir")
         case "Empleado":
             print("\n=== SISTEMA DE GESTIÓN DE SUPERMERCADO ===")
             print("1. Registrar venta")
             print("2. Mostrar historial de venta")
             print("3. Busqueda por codigo de venta")
-            print("4. Salir")
+            print("4. Cerrar sesion")
+            print("5. Salir")
         case "Bodeguero":
             print("\n=== SISTEMA DE GESTIÓN DE SUPERMERCADO ===")
-            print("1. Ingresar productos")
-            print("2. Salir")
+            print("1. Compra de producto")
+            print("2. Registro de compras")
+            print("3. Cerrar sesion")
+            print("4. Salir")
 
     try:
         opcion = int(input("Seleccione una opcion: "))
@@ -1116,7 +1120,11 @@ while True:
                         print(detalle.mostrar_detalle())
 
                 case 21:
-                    print("Saliendo del sistema")
+                    print("Saliendo al menu de usuario")
+                    menu.menu_inicio(sistema)
+
+                case 22:
+                    print("Saliendo del programa")
                     break
 
                 case _:
@@ -1159,6 +1167,10 @@ while True:
                     manipulacion_ventas.filtrar_por_codigo(codigo)
 
                 case 4:
+                    print("Saliendo al menu de usuario")
+                    menu.menu_inicio(sistema)
+
+                case 5:
                     print("Saliendo del sistema")
                     break
 
@@ -1172,5 +1184,14 @@ while True:
                 case 2:
                     for detalle in manipulacion_compras.detalles_compras.values():
                         print(detalle.mostrar_detalle())
+
+                case 3:
+                    print("Saliendo al menu de usuario")
+                    menu.menu_inicio(sistema)
+
+                case 4:
+                    print("Saliendo del programa")
+                    break
+
                 case _:
                     print(" Opción inválida.")
