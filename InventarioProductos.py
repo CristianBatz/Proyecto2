@@ -622,7 +622,7 @@ class ManipulacionVentas:
             return
         total_general = 0
         for venta in self.ventas.values():
-            print(f"Venta ID: {venta.id_venta} | Fecha: {venta.fecha}")
+            print(f"Venta ID: {venta.id_venta} | Id del empleado: {venta.id_empleado} | Fecha: {venta.fecha} | Nit del cliente: {venta.id_cliente}")
             for det in venta.detalles:
                 print(f"  Producto {det.id_producto} - Cant: {det.cantidad} - Total: Q{det.subtotal:.2f}")
                 total_general += det.subtotal
