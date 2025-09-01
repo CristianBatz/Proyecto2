@@ -831,6 +831,7 @@ class ManipulacionCompras:
         self.compras[id_compra] = compra
         self.guardar_detalles()
         self.guardar_compras()
+        self.inventario.guardar_productos()
         print(f"Compra registrada exitosamente. Total: Q{compra.total:.2f}")
 
 class Buscar:
@@ -1150,8 +1151,7 @@ while True:
 
                 case 21:
                     print("=== Saliendo al menu de usuario ===")
-                    usuario_actual = None
-                    menu.menu_inicio(sistema)
+                    usuario_actual = menu.menu_inicio(sistema)
 
                 case 22:
                     print(" === Saliendo del programa ===")
@@ -1201,8 +1201,7 @@ while True:
 
                 case 4:
                     print("=== Saliendo al menu de usuario ===")
-                    usuario_actual = None
-                    menu.menu_inicio(sistema)
+                    usuario_actual = menu.menu_inicio(sistema)
 
                 case 5:
                     print("=== Saliendo del sistema ===")
@@ -1223,8 +1222,7 @@ while True:
 
                 case 3:
                     print("Saliendo al menu de usuario")
-                    usuario_actual = None
-                    menu.menu_inicio(sistema)
+                    usuario_actual = menu.menu_inicio(sistema)
 
                 case 4:
                     print("Saliendo del programa")
