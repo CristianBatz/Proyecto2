@@ -285,7 +285,7 @@ class ManipulacionClientes:
 
     def agregar_cliente(self):
         try:
-            nit = input("Ingrese el NIT del cliente: ")
+            nit = int(input("Ingrese el NIT del cliente: "))
             nombre = input("Ingrese el nombre del cliente: ").strip()
             telefono = int(input("Ingrese el teléfono del cliente: "))
             direccion = input("Ingrese la dirección del cliente: ")
@@ -507,10 +507,10 @@ class ManipulacionVentas:
         self.detalles_ventas = {}
         self.contador_venta = 1
         self.contador_detalle = 1
-        self.cargar_detalles()
-        self.cargar_ventas()
         self.clientes = clientes.clientes
         self.empleados =empleados.empleados
+        self.cargar_detalles()
+        self.cargar_ventas()
 
     def generar_id_venta(self):
         id_v = self.contador_venta
@@ -588,7 +588,7 @@ class ManipulacionVentas:
         producto.stock -= cantidad
 
         if id_cliente is None:
-            id_cliente = int(input("Ingrese ID del cliente: "))
+            id_cliente = int(input("Ingrese el NIT del cliente: "))
         if id_cliente not in self.clientes:
             print("Cliente no encontrado. La venta se cancelará.")
             return

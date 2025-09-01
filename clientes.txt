@@ -1,4 +1,1 @@
-1234:jorge:5555:xela:jorge@gmail.com
-12345:carlos:5556:xela:carlos@gmail.com
-12346:cristian:55557:toto:cris@gmail.com
-1254:pablo:5554:xela:jore@
+1234:jose:54389090:xela:jose@gmail.com
